@@ -18,7 +18,7 @@ contract bitpharma {
         uint quantity;
         uint expiration;
         uint status; //status legend: 0-> prescription is issued, 1-> patient confirms purchase, 
-        //2-> pharma closes transaction successfully, 3-> prescription expired before purchase...
+        //2-> pharma closed transaction successfully, 3-> prescription expired before purchase...
         
         //bool exists;
         }
@@ -27,7 +27,7 @@ contract bitpharma {
     mapping (uint => address) public prescription_to_patient; //for each prescription ID, map to patient address
     mapping (address => uint) public active_prescriptions; //number of active prescriptions given patient address
     
-    function newPrescription(string memory _drug, uint _quantity, uint _daysToExpiration, address _patient) public {  //only doctos can add elements in the array
+    function newPrescription(string memory _drug, uint _quantity, uint _daysToExpiration, address _patient) public {  //only doctors can add elements in the array
         require(msg.sender == doctor, "Only doctors can issue new prescriptions!");
         require(_patient == patient, "Please indicate a valid patient!");
         uint id = prescriptions.push(prescription(_drug, _quantity,now + _daysToExpiration * 1 days ,0)) - 1;
@@ -35,14 +35,14 @@ contract bitpharma {
         active_prescriptions[_patient]++;
     }
 
-    function purchase_confirmation(uint _prescrId) public {  //patient can confirm the purchase of a prescription in the array
+    function patient_purchasing(uint _prescrId) public {  //patient can confirm the purchase of a prescription in the array
         require(msg.sender == prescription_to_patient[_prescrId], "You don't have the right to confirm purchase!");
         require(prescriptions[_prescrId].status==0, "You can't confirm purchase for this item!");
         if(now>prescriptions[_prescrId].expiration) {
             prescriptions[_prescrId].status=3;
+            active_prescriptions[prescription_to_patient[_prescrId]]--;
         }
-        require(prescriptions[_prescrId].expiration>now, "This prescription has expired...");
-        prescriptions[_prescrId].status=1;
+        else prescriptions[_prescrId].status=1;
     }
     
     function close_transaction(uint _prescrId) public {  //pharmacies can close transactions after patient has confirmed purchase
