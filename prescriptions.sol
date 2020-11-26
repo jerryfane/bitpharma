@@ -119,7 +119,7 @@ contract bitpharma {
         list_of_Prescriptions_Ids = result;
     }
     
-    function check_prescriprions(address _patient, string calldata _drug) external view  returns(bool currently_prescripted, bool previously_prescripted) {
+    function check_prescriptions(address _patient, string calldata _drug) external view  returns(bool currently_prescripted, bool previously_prescripted) {
         require(msg.sender==doctor, "You can't access prescriptions!");
         //uint[] memory result = new uint[](active_prescriptions[_patient]);
         currently_prescripted = false;
