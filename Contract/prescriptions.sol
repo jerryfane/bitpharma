@@ -1,7 +1,7 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 contract bitpharma {
-
+    // restrict the deployment to only doctors?
     address doctor;
     address patient;
     address pharmacy;
@@ -25,15 +25,13 @@ contract bitpharma {
         //we could import this contract to lowercase: https://gist.github.com/ottodevs/c43d0a8b4b891ac2da675f825b1d1dbf  
         string drug; 
         uint quantity;  //total quantity of the drug claimable before prescription expires;
-        uint quantity_claimed; //quantity claimed by user in a single purchase
+        uint quantity_claimed; //quantity claimed by user in a single purchase ??
         uint maxclaim; //max amount claimable in single purchase
         uint purchase_cooldown; //set in days for the patient to be able to buy the drug again
         uint last_purchase; //timestamp of latest purchase
         uint expiration; //days from when prescription was issued
         uint status; //status legend: 0-> prescription is issued, 1-> patient confirms purchase,
         //2-> pharma closed transaction successfully, 3-> prescription expired before purchase...
-
-        //bool exists;
         }
 
     prescription[] internal prescriptions;  //array of prescriptions
@@ -57,7 +55,7 @@ contract bitpharma {
         require(prescriptions[_prescrId].maxclaim>=_quantity, "You can't buy this much in a single purchase");
         require(prescriptions[_prescrId].quantity>=_quantity, "Claim exceeds quantity left...");
         require(prescriptions[_prescrId].last_purchase + prescriptions[_prescrId].purchase_cooldown<= now, "Wait a few more before buying again");
-        if(now>prescriptions[_prescrId].expiration) {
+        if(now>prescriptions[_prescrId].expiration) {  
             prescriptions[_prescrId].status=3;
             active_prescriptions[prescription_to_patient[_prescrId]]--;
         }
@@ -70,7 +68,6 @@ contract bitpharma {
     function close_transaction(uint _prescrId, uint _quantity) external {  //pharmacies can close transactions after patient has confirmed purchase
         require(msg.sender == pharmacy, "Only pharmacies can close transactions!");
         require(prescriptions[_prescrId].status==1, "This transaction can't be confirmed!");
-        require(prescriptions[_prescrId].quantity>=_quantity, "The doctor did not release enough quantity");  //possiamo cancellarlo perchè incluso nel successivo (?)
         require(prescriptions[_prescrId].quantity_claimed==_quantity, "Agree with the patient on the quantity claimed");
 
         if (prescriptions[_prescrId].quantity - _quantity > 0 ){
@@ -82,7 +79,7 @@ contract bitpharma {
             active_prescriptions[prescription_to_patient[_prescrId]]--;
             emit Closed(_prescrId);
         }
-        prescriptions[_prescrId].quantity_claimed=0;
+        //prescriptions[_prescrId].quantity_claimed=0; maybe useless 
         prescriptions[_prescrId].last_purchase=now;
         emit Transaction(_prescrId, _quantity);
     }
@@ -106,6 +103,7 @@ contract bitpharma {
     // not all doctors can be allowed to access a random patient's prescriptions (that is not respecting their privacy)
     // Only doctors that are prescribing something to them should be able to do this if they want to. 
     // Actually, we need to check because I am not sure whether explicit consent from the patient is needed. 
+
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
         require(msg.sender==doctor, "You can't access prescriptions!");
         uint[] memory result = new uint[](active_prescriptions[_patient]);
