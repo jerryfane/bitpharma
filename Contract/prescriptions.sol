@@ -1,29 +1,28 @@
 pragma solidity >=0.5.0 <0.6.0;
 
+import "./whitelist.sol";
+
 contract bitpharma {
     // restrict the deployment to only doctors?
-    address doctor;
-    address patient;
-    address pharmacy;
-    
+    address bitpharma_manager;
+    address whitelist_address; //whitelist  address is the address of the whitelist contract
+
+    constructor  () public {
+        //initialize BitPharma Manager
+        //this is the centralized authority used to add new doctors and pharmacies
+        bitpharma_manager = msg.sender;
+    }
+
     // these events will be generated when transaction is mined (and hopefully we will catch them with Python)
     event Prescribed(string _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient);
-    event Transaction(uint _prescrId, uint _quantity); // a purchase has been made, as confirmed by both parties  
+    event Transaction(uint _prescrId, uint _quantity); // a purchase has been made, as confirmed by both parties
     event Closed(uint _prescrId); // a prescription contract has been closed
-    
-    
-    constructor  (address _doctor, address _patient, address _pharmacy) public {
-        //to initialize addresses
-        doctor = _doctor;
-        patient = _patient;
-        pharmacy = _pharmacy;
-    }
-    
+
 
     struct prescription {
         //N.B: solidity  does not allow for string comparison, need to make sure all strings parameters are lowercased
-        //we could import this contract to lowercase: https://gist.github.com/ottodevs/c43d0a8b4b891ac2da675f825b1d1dbf  
-        string drug; 
+        //we could import this contract to lowercase: https://gist.github.com/ottodevs/c43d0a8b4b891ac2da675f825b1d1dbf
+        string drug;
         uint quantity;  //total quantity of the drug claimable before prescription expires;
         uint quantity_claimed; //quantity claimed by user in a single purchase ??
         uint maxclaim; //max amount claimable in single purchase
@@ -38,9 +37,14 @@ contract bitpharma {
     mapping (uint => address) internal prescription_to_patient; //for each prescription ID, map to patient address
     mapping (address => uint) internal active_prescriptions; //number of active prescriptions given patient address
 
+    function set_whitelist_address(address _wl_address) external { //BitPharma can always update the address of the whitelist contract
+        require(msg.sender == bitpharma_manager, "Only BitPharma Manager can update the whitelist address");
+        whitelist_address = _wl_address;
+    }
+
     function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
-        require(msg.sender == doctor, "Only doctors can issue new prescriptions!");
-        require(_patient == patient, "Please indicate a valid patient!");
+        require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "Only doctors can issue new prescriptions!");
+        //require(_patient == patient, "Please indicate a valid patient!");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         uint id = prescriptions.push(prescription(_drug, _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days ,0)) - 1;
@@ -55,7 +59,7 @@ contract bitpharma {
         require(prescriptions[_prescrId].maxclaim>=_quantity, "You can't buy this much in a single purchase");
         require(prescriptions[_prescrId].quantity>=_quantity, "Claim exceeds quantity left...");
         require(prescriptions[_prescrId].last_purchase + prescriptions[_prescrId].purchase_cooldown<= now, "Wait a few more before buying again");
-        if(now>prescriptions[_prescrId].expiration) {  
+        if(now>prescriptions[_prescrId].expiration) {
             prescriptions[_prescrId].status=3;
             active_prescriptions[prescription_to_patient[_prescrId]]--;
         }
@@ -66,7 +70,7 @@ contract bitpharma {
     }
 
     function close_transaction(uint _prescrId, uint _quantity) external {  //pharmacies can close transactions after patient has confirmed purchase
-        require(msg.sender == pharmacy, "Only pharmacies can close transactions!");
+        require(bitpharma_wl(whitelist_address).is_pharmacy(msg.sender), "Only pharmacies can close transactions!");
         require(prescriptions[_prescrId].status==1, "This transaction can't be confirmed!");
         require(prescriptions[_prescrId].quantity_claimed==_quantity, "Agree with the patient on the quantity claimed");
 
@@ -79,14 +83,14 @@ contract bitpharma {
             active_prescriptions[prescription_to_patient[_prescrId]]--;
             emit Closed(_prescrId);
         }
-        //prescriptions[_prescrId].quantity_claimed=0; maybe useless 
+        //prescriptions[_prescrId].quantity_claimed=0; maybe useless
         prescriptions[_prescrId].last_purchase=now;
         emit Transaction(_prescrId, _quantity);
     }
-    
+
 
     function my_prescriptions() external view returns(uint[] memory list_of_myPrescriptions_Ids) {  //return all active prescriptions IDs of a patient
-        require(msg.sender==patient, "You can't access prescriptions!");
+        //require(msg.sender==patient, "You can't access prescriptions!");
         uint[] memory result = new uint[](active_prescriptions[msg.sender]);
         uint counter = 0;
         for (uint i = 0; i < prescriptions.length; i++) {
@@ -98,14 +102,14 @@ contract bitpharma {
         list_of_myPrescriptions_Ids = result;
         //return result;
     }
-    
+
     // TO ADD, when we have multiple doctors:
     // not all doctors can be allowed to access a random patient's prescriptions (that is not respecting their privacy)
-    // Only doctors that are prescribing something to them should be able to do this if they want to. 
-    // Actually, we need to check because I am not sure whether explicit consent from the patient is needed. 
+    // Only doctors that are prescribing something to them should be able to do this if they want to.
+    // Actually, we need to check because I am not sure whether explicit consent from the patient is needed.
 
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
-        require(msg.sender==doctor, "You can't access prescriptions!");
+        require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
         uint[] memory result = new uint[](active_prescriptions[_patient]);
         uint counter = 0;
         for (uint i = 0; i < prescriptions.length; i++) {
@@ -116,9 +120,9 @@ contract bitpharma {
         }
         list_of_Prescriptions_Ids = result;
     }
-    
+
     function check_prescriptions(address _patient, string calldata _drug) external view  returns(bool currently_prescripted, bool previously_prescripted) {
-        require(msg.sender==doctor, "You can't access prescriptions!");
+        require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
         //uint[] memory result = new uint[](active_prescriptions[_patient]);
         currently_prescripted = false;
         previously_prescripted = false;
@@ -131,15 +135,15 @@ contract bitpharma {
         }
         return(currently_prescripted, previously_prescripted);
     }
-    
-    
+
+
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
-        require(msg.sender==prescription_to_patient[_prescrId] || msg.sender==doctor, "You can't see this prescription!");
+        require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;
         can_I_buy = (prescriptions[_prescrId].purchase_cooldown+prescriptions[_prescrId].last_purchase < now);
-        
+
         // this gives the wrong number of days, looking for solution
         days_to_expiration = ((prescriptions[_prescrId].expiration - now) / 86400);
         status = prescriptions[_prescrId].status;
@@ -149,17 +153,17 @@ contract bitpharma {
 
 
     //just to print stuff
-    function getdoctor() external view returns(address) {
-        return doctor;
-    }
+    //function getdoctors() external view returns(address) {
+        //return doctor;
+    //}
 
-    function getpatient() external view returns(address) {
-        return patient;
-    }
+    //function getpatient() external view returns(address) {
+        //return patient;
+    //}
 
-    function getpharma() external view returns(address) {
-        return pharmacy;
-    }
+    //function getpharma() external view returns(address) {
+        //return pharmacy;
+    //}
 
     //function gettimestamp() external view returns(uint) {
     //    return now / 1 days;
