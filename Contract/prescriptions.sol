@@ -31,6 +31,7 @@ contract bitpharma {
         uint expiration; //days from when prescription was issued
         uint status; //status legend: 0-> prescription is issued, 1-> patient confirms purchase,
         //2-> pharma closed transaction successfully, 3-> prescription expired before purchase...
+        address doctor; //Doctor who issued the prescription 
         }
 
     prescription[] internal prescriptions;  //array of prescriptions
@@ -57,7 +58,7 @@ contract bitpharma {
         //require(_patient == patient, "Please indicate a valid patient!");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
-        uint id = prescriptions.push(prescription(_drug, _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days ,0)) - 1;
+        uint id = prescriptions.push(prescription(_drug, _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
@@ -151,12 +152,11 @@ contract bitpharma {
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
         //require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
-        require(msg.sender==prescription_to_patient[_prescrId] || patient_readers[prescription_to_patient[_prescrId]][msg.sender], "You can't see this prescription!");
+        require(msg.sender==prescription_to_patient[_prescrId] || patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).is_pharmacy(msg.sender), "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;
         can_I_buy = (prescriptions[_prescrId].purchase_cooldown+prescriptions[_prescrId].last_purchase < now);
-
         // this gives the wrong number of days, looking for solution
         days_to_expiration = ((prescriptions[_prescrId].expiration - now) / 86400);
         status = prescriptions[_prescrId].status;
