@@ -36,10 +36,20 @@ contract bitpharma {
     prescription[] internal prescriptions;  //array of prescriptions
     mapping (uint => address) internal prescription_to_patient; //for each prescription ID, map to patient address
     mapping (address => uint) internal active_prescriptions; //number of active prescriptions given patient address
+    mapping(address => mapping(address => bool)) patient_readers; //addresses who can access patient information
+
 
     function set_whitelist_address(address _wl_address) external { //BitPharma can always update the address of the whitelist contract
         require(msg.sender == bitpharma_manager, "Only BitPharma Manager can update the whitelist address");
         whitelist_address = _wl_address;
+    }
+
+    function patient_add_reader(address _reader) external { //patients can allow new addresses to access their information (usually doctors)
+        patient_readers[msg.sender][_reader] = true;
+    }
+
+    function patient_remove_reader(address _reader) external { //patients can remove addresses the access to their information (usually doctors)
+        patient_readers[msg.sender][_reader] = false;
     }
 
     function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
@@ -109,7 +119,8 @@ contract bitpharma {
     // Actually, we need to check because I am not sure whether explicit consent from the patient is needed.
 
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
-        require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
+        //require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
+        require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); //anyone who is a reader for that patient can access information
         uint[] memory result = new uint[](active_prescriptions[_patient]);
         uint counter = 0;
         for (uint i = 0; i < prescriptions.length; i++) {
@@ -122,7 +133,8 @@ contract bitpharma {
     }
 
     function check_prescriptions(address _patient, string calldata _drug) external view  returns(bool currently_prescripted, bool previously_prescripted) {
-        require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
+        //require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
+        require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); //anyone who is a reader for that patient can access information
         //uint[] memory result = new uint[](active_prescriptions[_patient]);
         currently_prescripted = false;
         previously_prescripted = false;
@@ -138,7 +150,8 @@ contract bitpharma {
 
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
-        require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
+        //require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
+        require(msg.sender==prescription_to_patient[_prescrId] || patient_readers[prescription_to_patient[_prescrId]][msg.sender], "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;

@@ -18,7 +18,7 @@ contract bitpharma_wl {
         doctors[_doctor] = true;
     }
 
-    function add_pharacy(address _pharmacy) public {
+    function add_pharmacy(address _pharmacy) public {
         require(msg.sender == bitpharma_manager, "Only BitPharma can add new pharmacies");
         pharmacies[_pharmacy] = true;
     }
