@@ -17,6 +17,8 @@ contract bitpharma {
     event Prescribed(string _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient);
     event Transaction(uint _prescrId, uint _quantity); // a purchase has been made, as confirmed by both parties
     event Closed(uint _prescrId); // a prescription contract has been closed
+    event ReaderAdded(address _reader, address _patient); // a new doctor is added to the list of readers
+    event ReaderRemoved(address _reader, address _patient); // a doctor is removed from the list of readers
 
 
     struct prescription {
@@ -47,11 +49,13 @@ contract bitpharma {
     function patient_add_reader(address _reader) external { 
         //patients can allow new addresses to access their information (usually doctors)
         patient_readers[msg.sender][_reader] = true;
+        emit ReaderAdded(_reader, msg.sender);
     }
 
     function patient_remove_reader(address _reader) external { 
         //patients can remove addresses the access to their information (usually doctors)
         patient_readers[msg.sender][_reader] = false;
+        emit ReaderRemoved(_reader, msg.sender);
     }
 
     function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
