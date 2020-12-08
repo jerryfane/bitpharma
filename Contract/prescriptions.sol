@@ -150,7 +150,7 @@ contract bitpharma {
     //}
     
 
-    function check_duplicate_prescriptions(address _patient, string calldata _drug) internal view returns(bool currently_prescribed) {
+    function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
         currently_prescribed = false;
         for (uint i = 0; i < prescriptions.length; i++) {
             if (prescription_to_patient[i] == _patient  &&  keccak256(bytes(prescriptions[i].drug)) == keccak256(bytes(_drug))) {
