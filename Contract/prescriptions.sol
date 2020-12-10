@@ -163,7 +163,6 @@ contract bitpharma {
         }
     }
 
-
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
         //require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
         require(msg.sender==prescription_to_patient[_prescrId] || patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).is_pharmacy(msg.sender), "You can't see this prescription!");
