@@ -78,7 +78,6 @@ contract bitpharma {
 
     function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
         require(bitpharma_wl(whitelist_address).doctors(msg.sender), "Only doctors can issue new prescriptions!");
-        //require(_patient == patient, "Please indicate a valid patient!");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         require(check_duplicate_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
@@ -126,24 +125,8 @@ contract bitpharma {
         emit Transaction(_prescrId, _quantity);
     }
 
-
-    //function my_prescriptions() external view returns(uint[] memory list_of_myPrescriptions_Ids) {  
-        //return all active prescriptions IDs of a patient
-        //require(msg.sender==patient, "You can't access prescriptions!");
-        //uint[] memory result = new uint[](active_prescriptions[msg.sender]);
-        //uint counter = 0;
-        //for (uint i = 0; i < prescriptions.length; i++) {
-        //    if (prescription_to_patient[i] == msg.sender && prescriptions[i].status<2) {
-        //        result[counter] = i;
-        //        counter++;
-        //    }
-        //}
-        //list_of_myPrescriptions_Ids = result;
-    //}
-
   
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
-        //require(bitpharma_wl(whitelist_address).doctors(msg.sender), "You can't access prescriptions!");
         require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); 
         uint[] memory result = new uint[](active_prescriptions[_patient]);
         uint counter = 0;
@@ -156,21 +139,6 @@ contract bitpharma {
         list_of_Prescriptions_Ids = result;
     }
 
-    //function check_prescriptions(address _patient, string calldata _drug) external view  returns(bool currently_prescripted, bool previously_prescripted) {
-        //require(bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't access prescriptions!");
-        //require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); //anyone who is a reader for that patient can access information
-        //uint[] memory result = new uint[](active_prescriptions[_patient]);
-        //currently_prescripted = false;
-        //previously_prescripted = false;
-        // note: solidity does not allow for string comparison, but it does compare hashes (everything needs to be lowercased!)
-        //for (uint i = 0; i < prescriptions.length; i++) {
-        //    if (prescription_to_patient[i] == _patient  &&  keccak256(bytes(prescriptions[i].drug)) == keccak256(bytes(_drug))) {
-        //        if (prescriptions[i].status<2) currently_prescripted = true;
-        //        else previously_prescripted = true;
-        //    }
-        //}
-      //return(currently_prescripted, previously_prescripted);
-    //}
     
 
     function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
@@ -184,7 +152,6 @@ contract bitpharma {
     }
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
-        //require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
         require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).pharmacies(msg.sender), "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
