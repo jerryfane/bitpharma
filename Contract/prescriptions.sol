@@ -67,6 +67,7 @@ contract bitpharma {
         uint id = prescriptions.push(prescription(_drug, _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
+        patient_readers[_patient][_patient] = true;
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
 
@@ -108,19 +109,19 @@ contract bitpharma {
     }
 
 
-    function my_prescriptions() external view returns(uint[] memory list_of_myPrescriptions_Ids) {  
+    //function my_prescriptions() external view returns(uint[] memory list_of_myPrescriptions_Ids) {  
         //return all active prescriptions IDs of a patient
         //require(msg.sender==patient, "You can't access prescriptions!");
-        uint[] memory result = new uint[](active_prescriptions[msg.sender]);
-        uint counter = 0;
-        for (uint i = 0; i < prescriptions.length; i++) {
-            if (prescription_to_patient[i] == msg.sender && prescriptions[i].status<2) {
-                result[counter] = i;
-                counter++;
-            }
-        }
-        list_of_myPrescriptions_Ids = result;
-    }
+        //uint[] memory result = new uint[](active_prescriptions[msg.sender]);
+        //uint counter = 0;
+        //for (uint i = 0; i < prescriptions.length; i++) {
+        //    if (prescription_to_patient[i] == msg.sender && prescriptions[i].status<2) {
+        //        result[counter] = i;
+        //        counter++;
+        //    }
+        //}
+        //list_of_myPrescriptions_Ids = result;
+    //}
 
   
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
@@ -165,7 +166,7 @@ contract bitpharma {
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
         //require(msg.sender==prescription_to_patient[_prescrId] || bitpharma_wl(whitelist_address).is_doctor(msg.sender), "You can't see this prescription!");
-        require(msg.sender==prescription_to_patient[_prescrId] || patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).pharmacies(msg.sender), "You can't see this prescription!");
+        require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).pharmacies(msg.sender), "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;
