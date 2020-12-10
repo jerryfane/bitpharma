@@ -1,6 +1,7 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 import "./whitelist.sol";
+//import "./bitpharma_utils.sol";
 
 contract bitpharma {
     // restrict the deployment to only doctors?
@@ -19,6 +20,23 @@ contract bitpharma {
     event Closed(uint _prescrId); // a prescription contract has been closed
     event ReaderAdded(address _reader, address _patient); // a new doctor is added to the list of readers
     event ReaderRemoved(address _reader, address _patient); // a doctor is removed from the list of readers
+    
+    // UTILS here (until import debugged)
+    function lowercase(string memory _str) internal pure returns (string memory) {
+        
+        bytes memory bytes_str = bytes(_str);
+		bytes memory bytes_lower_str = new bytes(bytes_str.length);
+		for (uint i = 0; i < bytes_str.length; i++) {
+			// if uppercase character...
+			if ((uint8(bytes_str[i]) >= 65) && (uint8(bytes_str[i]) <= 90)) {
+				// we add 32 to make it lowercase
+				bytes_lower_str[i] = bytes1(uint8(bytes_str[i]) + 32);
+			} else {
+				bytes_lower_str[i] = bytes_str[i];
+			}
+		}
+		return string(bytes_lower_str);
+	}
 
 
     struct prescription {
@@ -64,7 +82,7 @@ contract bitpharma {
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         require(check_duplicate_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
-        uint id = prescriptions.push(prescription(_drug, _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
+        uint id = prescriptions.push(prescription(lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
         patient_readers[_patient][_patient] = true;
@@ -157,8 +175,9 @@ contract bitpharma {
 
     function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
         currently_prescribed = false;
+        string memory drug = lowercase(_drug);
         for (uint i = 0; i < prescriptions.length; i++) {
-            if (prescription_to_patient[i] == _patient  &&  keccak256(bytes(prescriptions[i].drug)) == keccak256(bytes(_drug))) {
+            if (prescription_to_patient[i] == _patient  &&  keccak256(bytes(prescriptions[i].drug)) == keccak256(bytes(drug))) {
                 if (prescriptions[i].status<2) currently_prescribed = true;
             }
         }
@@ -174,5 +193,6 @@ contract bitpharma {
         days_to_expiration = ((prescriptions[_prescrId].expiration - now) / 86400);
         status = prescriptions[_prescrId].status;
     }
+
 
 }
