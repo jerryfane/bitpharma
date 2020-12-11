@@ -20,10 +20,10 @@ contract bitpharma {
     event Closed(uint _prescrId); // a prescription contract has been closed
     event ReaderAdded(address _reader, address _patient); // a new doctor is added to the list of readers
     event ReaderRemoved(address _reader, address _patient); // a doctor is removed from the list of readers
-    
+
     // UTILS here (until import debugged)
     function lowercase(string memory _str) internal pure returns (string memory) {
-        
+
         bytes memory bytes_str = bytes(_str);
 		bytes memory bytes_lower_str = new bytes(bytes_str.length);
 		for (uint i = 0; i < bytes_str.length; i++) {
@@ -49,7 +49,7 @@ contract bitpharma {
         uint expiration; //days from when prescription was issued
         uint status; //status legend: 0-> prescription is issued, 1-> patient confirms purchase,
         //2-> pharma closed transaction successfully, 3-> prescription expired before purchase...
-        address doctor; //Doctor who issued the prescription 
+        address doctor; //Doctor who issued the prescription
         }
 
     prescription[] internal prescriptions;  //array of prescriptions
@@ -58,26 +58,29 @@ contract bitpharma {
     mapping(address => mapping(address => bool)) patient_readers; //addresses who can access patient information
 
 
-    function set_whitelist_address(address _wl_address) external { 
+    function set_whitelist_address(address _wl_address) external {
         //BitPharma can always update the address of the whitelist contract
         require(msg.sender == bitpharma_manager, "Only BitPharma Manager can update the whitelist address");
         whitelist_address = _wl_address;
     }
 
-    function patient_add_reader(address _reader) external { 
+    function patient_add_reader(address _reader) external {
         //patients can allow new addresses to access their information (usually doctors)
+        require(bitpharma_wl(whitelist_address).patients(msg.sender), "You are not a patient!");
         patient_readers[msg.sender][_reader] = true;
         emit ReaderAdded(_reader, msg.sender);
     }
 
-    function patient_remove_reader(address _reader) external { 
+    function patient_remove_reader(address _reader) external {
         //patients can remove addresses the access to their information (usually doctors)
+        require(bitpharma_wl(whitelist_address).patients(msg.sender), "You are not a patient!");
         patient_readers[msg.sender][_reader] = false;
         emit ReaderRemoved(_reader, msg.sender);
     }
 
     function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
         require(bitpharma_wl(whitelist_address).doctors(msg.sender), "Only doctors can issue new prescriptions!");
+        require(bitpharma_wl(whitelist_address).patients(msg.sender), "This address does not match any patient");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         require(check_duplicate_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
@@ -88,7 +91,7 @@ contract bitpharma {
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
 
-    function patient_purchasing(uint _prescrId, uint _quantity) external { 
+    function patient_purchasing(uint _prescrId, uint _quantity) external {
         //patient can confirm the purchase of a prescription in the array
         require(msg.sender == prescription_to_patient[_prescrId], "You don't have the right to access this prescription!");
         require(prescriptions[_prescrId].status==0, "You can't confirm purchase for this item!");
@@ -105,7 +108,7 @@ contract bitpharma {
         }
     }
 
-    function close_transaction(uint _prescrId, uint _quantity) external {  
+    function close_transaction(uint _prescrId, uint _quantity) external {
         //pharmacies can close transactions after patient has confirmed purchase
         require(bitpharma_wl(whitelist_address).pharmacies(msg.sender), "Only pharmacies can close transactions!");
         require(prescriptions[_prescrId].status==1, "This transaction can't be confirmed!");
@@ -125,9 +128,9 @@ contract bitpharma {
         emit Transaction(_prescrId, _quantity);
     }
 
-  
+
     function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
-        require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); 
+        require(patient_readers[_patient][msg.sender], "You can't access prescriptions!");
         uint[] memory result = new uint[](active_prescriptions[_patient]);
         uint counter = 0;
         for (uint i = 0; i < prescriptions.length; i++) {
@@ -139,7 +142,6 @@ contract bitpharma {
         list_of_Prescriptions_Ids = result;
     }
 
-    
 
     function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
         currently_prescribed = false;

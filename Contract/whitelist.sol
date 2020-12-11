@@ -12,6 +12,7 @@ contract bitpharma_wl {
 
     mapping (address => bool) public doctors; //tuple for doctors affiliated with BitPharma
     mapping (address => bool) public pharmacies; //tuple for pharmacies affiliated with BitPharma
+    mapping (address => bool) public patients; //tuple for patients affiliated with BitPharma
 
     function add_doctor(address _doctor) public {
         require(msg.sender == bitpharma_manager, "Only BitPharma can add new doctors");
@@ -21,5 +22,25 @@ contract bitpharma_wl {
     function add_pharmacy(address _pharmacy) public {
         require(msg.sender == bitpharma_manager, "Only BitPharma can add new pharmacies");
         pharmacies[_pharmacy] = true;
+    }
+
+    function add_patient(address _patient) public {
+        require(msg.sender == bitpharma_manager, "Only BitPharma can add new patients");
+        patients[_patient] = true;
+    }
+
+    function remove_doctor(address _doctor) public {
+        require(msg.sender == bitpharma_manager, "Only BitPharma can remove doctors");
+        doctors[_doctor] = false;
+    }
+
+    function remove_pharmacy(address _pharmacy) public {
+        require(msg.sender == bitpharma_manager, "Only BitPharma can remove pharmacies");
+        pharmacies[_pharmacy] = false;
+    }
+
+    function remove_patient(address _patient) public {
+        require(msg.sender == bitpharma_manager, "Only BitPharma can remove patients");
+        patients[_patient] = false;
     }
 }

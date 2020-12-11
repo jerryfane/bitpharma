@@ -3,10 +3,10 @@ from PIL import ImageTk, Image
 import json
 from web3 import Web3
 
-with open('bitpharma_wl.abi') as json_file:
+with open('./contract_data/bitpharma_wl.abi') as json_file:
     abi_ = json.loads(json_file.read())
-    
-with open('bitpharma_wl.bin') as file:
+
+with open('./contract_data/bitpharma_wl.bin') as file:
     bin_ = file.read()
 
 ganache_URL = "HTTP://127.0.0.1:7545"
@@ -66,21 +66,21 @@ for column in range(3):
     master.grid_columnconfigure(column, weight=1)
 for row in range(9):
     master.grid_rowconfigure(row, weight=1)
-    
-back_image = Image.open('pharmacy.jpg')
+
+back_image = Image.open('./images/pharmacy.jpg')
 background_image = ImageTk.PhotoImage(back_image)
 background_label = tk.Label(master, image=background_image)
 background_label.place(x=0, y=0, relwidth=1, relheight=1)
 background_label.image = background_image
 
 title=tk.Label(master, text='Welcome to Medical prescription Ethereum!', font=30, fg="green")
-title.grid(row=0,column=1,sticky='WE', padx=10, pady=(10))  
+title.grid(row=0,column=1,sticky='WE', padx=10, pady=(10))
 
 frame = tk.Frame(master)
 frame.grid(row=1, column=1)
 canvas = tk.Canvas(frame, bg="black", width=200, height=200)
 canvas.pack()
-load = Image.open('logo_pharma.png')
+load = Image.open('./images/logo_pharma.png')
 load = load.resize((200, 200))
 photoimage = ImageTk.PhotoImage(load)
 canvas.create_image(100, 100, image=photoimage)
@@ -106,14 +106,14 @@ add_doctor_button=tk.Button(master, text='Add doctor', command=add_doctor,
                             fg="green", bd=4, font="arial 15")
 add_doctor_button.grid(row=5, column=1, sticky='WE', padx=100, pady=10)
 
-check_doctor_button=tk.Button(master, text='Check doctor', command=check_doctor, 
+check_doctor_button=tk.Button(master, text='Check doctor', command=check_doctor,
                               fg="green", bd=4, font="arial 15")
 check_doctor_button.grid(row=5, column=2, sticky='WE', padx=100, pady=10)
 
 pharma=tk.Entry(master, justify=tk.CENTER, show="*")
 pharma.grid(row=7, column=0, sticky='WE', padx=100, pady=10)
 
-add_pharma_button=tk.Button(master, text='Add pharmacy',command=add_pharma, 
+add_pharma_button=tk.Button(master, text='Add pharmacy',command=add_pharma,
                             fg="green", bd=4, font="arial 15")
 add_pharma_button.grid(row=7, column=1, sticky='WE', padx=100, pady=10)
 
