@@ -75,9 +75,6 @@ def patient_prescriptions_global(address):
 def prescription_details_global(id_prescr):
     return contract_deployed.functions.prescription_details(id_prescr).call()
 
-def check_duplicates_global(address,drug):
-    return contract_deployed.functions.check_duplicate_prescriptions(address,drug).call()
-
 def doctor_window_():
     def prescribe_drug():
         drug=str(drug_input.get())
@@ -92,12 +89,6 @@ def doctor_window_():
         address=str(patient_address_input2.get())
         details=patient_prescriptions_global(address)
         print(details)
-    
-    def check_duplicates():
-        address=str(patient_address_input2.get())
-        drug=str(drug_input2.get())
-        details=check_duplicates_global(address,drug)
-        print(details)
  
     def prescription_details():
         _id=int(prescrId_input.get())
@@ -109,7 +100,7 @@ def doctor_window_():
     doctor_window.title('Doctor interface')
     for col in range(3):
         doctor_window.grid_columnconfigure(col, weight=1)
-    for row in range(10):
+    for row in range(9):
         doctor_window.grid_rowconfigure(row, weight=1)
     
     title_doctor=tk.Label(doctor_window, text='Hello doctor!', font=(30))
@@ -160,23 +151,15 @@ def doctor_window_():
     
     check_patient_prescriptions_button=tk.Button(doctor_window, text='Check patient prescriptions',
                                                  command = patient_prescriptions)
-    check_patient_prescriptions_button.grid(row=8,column=1,sticky='WE', padx=40,pady=10)
-    
-    drug_input2=tk.Entry(doctor_window,justify=tk.CENTER, textvariable=tk.StringVar(doctor_window,'drug'), 
-                            fg = 'gray78', font = 'italic')
-    drug_input2.grid(row=9, column=0, sticky='WE', padx=100, pady=10)
-    
-    check_duplicates_button=tk.Button(doctor_window, text='Check Duplicates',
-                                                 command = check_duplicates)
-    check_duplicates_button.grid(row=9,column=1,sticky='WE', padx=40,pady=10)  
+    check_patient_prescriptions_button.grid(row=8,column=1,sticky='WE', padx=40,pady=10) 
     
     prescrId_input=tk.Entry(doctor_window,justify=tk.CENTER, textvariable=tk.StringVar(doctor_window,'prescription_ID'), 
                             fg = 'gray78', font = 'italic')
-    prescrId_input.grid(row=10, column=0, sticky='WE', padx=100, pady=10)
+    prescrId_input.grid(row=9, column=0, sticky='WE', padx=100, pady=10)
     
     prescription_details_button=tk.Button(doctor_window, text='Check prescriptions details',
-                                                 command = patient_prescriptions)
-    prescription_details_button.grid(row=10,column=1,sticky='WE', padx=40,pady=10)  
+                                                 command = prescription_details)
+    prescription_details_button.grid(row=9,column=1,sticky='WE', padx=40,pady=10)  
     
 
 def patient_window_():
@@ -195,27 +178,27 @@ def patient_window_():
         try: 
             contract_deployed.functions.patient_add_reader(address).transact()
             val_text=tk.Label(patient_window, text='The doctor is add!', fg='green')
-            val_text.grid(row=10, column=0, sticky='WE', padx=100, pady=10)
+            val_text.grid(row=7, column=0, sticky='WE', padx=100, pady=10)
         except: 
             val_text=tk.Label(patient_window, text='The doctor is not add. Insert a valid address!', fg='red')
-            val_text.grid(row=10, column=0, sticky='WE', padx=100, pady=10)
+            val_text.grid(row=7, column=0, sticky='WE', padx=100, pady=10)
 
     def remove_doctor():
         address=str(doctor_entry.get())
         try: 
             contract_deployed.functions.patient_remove_reader(address).transact()
             val_text=tk.Label(patient_window,text='The doctor is removed!', fg='green')
-            val_text.grid(row=10, column=2, sticky='WE', padx=100, pady=10)
+            val_text.grid(row=7, column=2, sticky='WE', padx=100, pady=10)
         except:
             val_text=tk.Label(patient_window,text='The doctor is not remove. Insert a valid address!', fg='red')
-            val_text.grid(row=10, column=2, sticky='WE', padx=100, pady=10)   
+            val_text.grid(row=7, column=2, sticky='WE', padx=100, pady=10)   
     
-    def purchase_prescription(): #Need to be fixed when working with prescriptions
+    def purchase_prescription():
         val_purchase = purchase_input.get().split(',')
         id_ = int(val_purchase[0])
         quantity_ = int(val_purchase[1])
         contract_deployed.functions.patient_purchasing(id_, quantity_).call()
-        validate_purchase=contract_deployed.functions.patient_purchasing(id_, quantity_).call()
+        validate_purchase=contract_deployed.functions.patient_purchasing(id_, quantity_).transact()
         print(validate_purchase)
     
     patient_window=tk.Toplevel()
@@ -248,44 +231,44 @@ def patient_window_():
 
     purchase_button=tk.Button(patient_window, text='Purchase!', command=purchase_prescription,
                               fg="blue4", bg ='orange', bd=4, font="arial 18")
-    purchase_button.grid(row=3, column=1, sticky='WE', padx=200, pady=10)
+    purchase_button.grid(row=3, column=1, sticky='WE', padx=10, pady=10)
 
     # My prescriptions
     my_prescr = tk.Button(patient_window, text='My Prescriptions', command = patient_prescriptions,
                           fg="blue4", bg ='orange', bd=4, font="arial 15")
-    my_prescr.grid(row=5, column=0, sticky='WE', padx=100, pady=10)
+    my_prescr.grid(row=3, column=0, sticky='WE', padx=10, pady=10)
 
     # Details prescription
     id_presc = tk.StringVar(patient_window, value='id_prescription')
     prescr_details=tk.Entry(patient_window, justify=tk.CENTER, textvariable=id_presc, 
                                   fg = 'gray78')
-    prescr_details.grid(row=5, column=2, sticky='WE', padx=100, pady=10)
+    prescr_details.grid(row=2, column=2, sticky='WE', padx=100, pady=10)
     button_details=tk.Button(patient_window, text='Details', command = prescription_details,
                              fg="blue4", bg ='orange', bd=4, font="arial 15")
-    button_details.grid(row=6, column=2, sticky='WE', padx=100, pady=10)
+    button_details.grid(row=3, column=2, sticky='WE', padx=10, pady=10)
     
     # Doctors section
     tkinter.ttk.Separator(patient_window, orient='horizontal').grid(column=0,
-        row=7, sticky='WE',padx=10, pady=10)
+        row=5, sticky='WE',padx=10, pady=10,columnspan=3)
     doct_section = tk.Label(patient_window, text='Manage doctor access', font = 30, bg ='orange')
-    doct_section.grid(row=7, column=1,sticky='WE', padx=100, pady=10) 
-    tkinter.ttk.Separator(patient_window, orient='horizontal').grid(column=2,
-        row=7, sticky='WE', padx=10, pady=10)   
+    doct_section.grid(row=5, column=1,sticky='WE', padx=100, pady=10) 
+    # tkinter.ttk.Separator(patient_window, orient='horizontal').grid(column=2,
+    #     row=7, sticky='WE', padx=10, pady=10)   
 
     id_doct = tk.StringVar(patient_window, value='Doctor public id')
     doctor_entry=tk.Entry(patient_window, justify=tk.CENTER, textvariable=id_doct, 
                               fg = 'gray78', font = 'italic')
-    doctor_entry.grid(row=8, column=1, sticky='WE', padx=100, pady=10)
+    doctor_entry.grid(row=6, column=1, sticky='WE', padx=100, pady=10)
 
     # Add Doctor
     add_button=tk.Button(patient_window, text='Add Doctor', command = add_doctor,
                          fg="blue4", bg ='orange', bd=4, font="arial 15")
-    add_button.grid(row=9, column=0, sticky='WE', padx=100, pady=10)
+    add_button.grid(row=6, column=0, sticky='WE', padx=100, pady=10)
 
     # Remove Doctor
     add_button=tk.Button(patient_window, text='Remove Doctor', command = remove_doctor,
                          fg="blue4", bg ='orange', bd=4, font="arial 15")
-    add_button.grid(row=9, column=2, sticky='WE', padx=100, pady=10)
+    add_button.grid(row=6, column=2, sticky='WE', padx=100, pady=10)
     
 def pharma_window_():
     def sell_drug():
@@ -298,12 +281,6 @@ def pharma_window_():
         details=patient_prescriptions_global(address)
         print(details)
     
-    def check_duplicates():
-        address=str(patient_address_input2.get())
-        drug=str(drug_input2.get())
-        details=check_duplicates_global(address,drug)
-        print(details)
- 
     def prescription_details():
         _id=int(prescrId_input.get())
         details=prescription_details_global(_id)
@@ -314,7 +291,7 @@ def pharma_window_():
     pharma_window.title('Pharma interface')
     for col in range(3):
         pharma_window.grid_columnconfigure(col, weight=1)
-    for row in range(8):
+    for row in range(7):
         pharma_window.grid_rowconfigure(row, weight=1)
         
     title_doctor=tk.Label(pharma_window, text='Hello Pharmacy!', font=(30))
@@ -326,7 +303,7 @@ def pharma_window_():
     first_section=tk.Label(pharma_window, text='Confirm prescription')
     first_section.grid(row=2,column=1,sticky='WE', padx=10,pady=10)
     
-    prescID=tk.Entry(pharma_window,justify=tk.CENTER, textvariable=tk.StringVar(pharma_window,'drug'), 
+    prescID=tk.Entry(pharma_window,justify=tk.CENTER, textvariable=tk.StringVar(pharma_window,'id_prescription'), 
                             fg = 'gray78', font = 'italic')
     prescID.grid(row=3, column=0, sticky='WE', padx=100, pady=10)
     
@@ -335,7 +312,7 @@ def pharma_window_():
     quantity_input.grid(row=3, column=1, sticky='WE', padx=100, pady=10)
     
     close_transaction_button=tk.Button(pharma_window, text='Confirm prescription',
-                                                 command = patient_prescriptions)
+                                                 command = sell_drug)
     close_transaction_button.grid(row=3,column=2,sticky='WE', padx=100,pady=10) 
     
     tkinter.ttk.Separator(pharma_window, orient='horizontal').grid(column=0,
@@ -351,22 +328,14 @@ def pharma_window_():
     check_patient_prescriptions_button=tk.Button(pharma_window, text='Check patient prescriptions',
                                                  command = patient_prescriptions)
     check_patient_prescriptions_button.grid(row=6,column=1,sticky='WE', padx=40,pady=10)
-    
-    drug_input2=tk.Entry(pharma_window,justify=tk.CENTER, textvariable=tk.StringVar(pharma_window,'drug'), 
-                            fg = 'gray78', font = 'italic')
-    drug_input2.grid(row=7, column=0, sticky='WE', padx=100, pady=10)
-    
-    check_duplicates_button=tk.Button(pharma_window, text='Check Duplicates',
-                                                 command = check_duplicates)
-    check_duplicates_button.grid(row=7,column=1,sticky='WE', padx=40,pady=10)  
-    
+     
     prescrId_input=tk.Entry(pharma_window,justify=tk.CENTER, textvariable=tk.StringVar(pharma_window,'prescription_ID'), 
                             fg = 'gray78', font = 'italic')
-    prescrId_input.grid(row=8, column=0, sticky='WE', padx=100, pady=10)
+    prescrId_input.grid(row=7, column=0, sticky='WE', padx=100, pady=10)
     
     prescription_details_button=tk.Button(pharma_window, text='Check prescriptions details',
-                                                 command = patient_prescriptions)
-    prescription_details_button.grid(row=8,column=1,sticky='WE', padx=40,pady=10) 
+                                                 command = prescription_details)
+    prescription_details_button.grid(row=7,column=1,sticky='WE', padx=40,pady=10) 
 
 def bitpharma_window_():
     def init_whitelist():

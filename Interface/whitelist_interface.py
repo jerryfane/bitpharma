@@ -33,10 +33,14 @@ def init_whitelist():
 def add_doctor():
     address=str(doc.get())
     contract_deployed.functions.add_doctor(address).transact()
+    val_text=tk.Label(master,text='Doctor added!', fg='green')
+    val_text.grid(row=6, column=1, sticky='WE', padx=30, pady=10)
 
 def add_pharma():
     address=str(pharma.get())
     contract_deployed.functions.add_pharmacy(address).transact()
+    val_text=tk.Label(master,text='Pharmacy added!', fg='green')
+    val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
 
 def check_doctor():
     address=str(doc.get())
