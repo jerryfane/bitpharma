@@ -142,7 +142,6 @@ contract bitpharma {
     
 
     function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
-        require(patient_readers[_patient][msg.sender], "You can't access prescriptions!"); 
         currently_prescribed = false;
         string memory drug = lowercase(_drug);
         for (uint i = 0; i < prescriptions.length; i++) {
