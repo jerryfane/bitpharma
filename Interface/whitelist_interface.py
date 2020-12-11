@@ -25,8 +25,9 @@ def init_whitelist():
     contract_address = tx_receipt['contractAddress'] ## address of the contract
     global contract_deployed
     contract_deployed = w3.eth.contract(address = contract_address, abi = abi_)
-
-    text=tk.Label(master,text='Deployed!')
+    add_contract = contract_deployed.address
+    text_v = f'Contract deployed \n Hash: {add_contract}'
+    text=tk.Label(master,text=text_v, fg='green')
     text.grid(row=3, column=2, sticky='WE', padx=30, pady=10)
 
 def add_doctor():
