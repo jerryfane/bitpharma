@@ -8,7 +8,6 @@ contract bitpharma {
 
     using utils for string;
 
-    // restrict the deployment to only doctors?
     address bitpharma_manager;
     address whitelist_address; //whitelist  address is the address of the whitelist contract
 
@@ -26,7 +25,7 @@ contract bitpharma {
     event ReaderRemoved(address _reader, address _patient); // a doctor is removed from the list of readers
 
     struct prescription {
-        string drug;
+        string drug; //name of the drug prescribed
         uint quantity;  //total quantity of the drug claimable before prescription expires;
         uint quantity_claimed; //quantity claimed by user in a single purchase ??
         uint maxclaim; //max amount claimable in single purchase
@@ -43,7 +42,9 @@ contract bitpharma {
     mapping (address => uint) internal active_prescriptions; //number of active prescriptions given patient address
     mapping(address => mapping(address => bool)) internal patient_readers; //addresses who can access patient information
     mapping(address => mapping(bytes32 => bool)) internal patient_active_prescriptions; //drug hash of active prescriptions for each patient
-
+    mapping(address => uint[]) internal patient_id_prescriptions; //id of prescriptions (current and past) for each patient
+    mapping(uint => mapping(address => uint[])) prescription_to_pharmacy_quantity; //for each prescription ID, map to the pharmacy who closed it and to the quantity
+    mapping(uint => address[]) prescription_to_pharmacy; //for each prescription ID, map to the array of pharmacies who closed it
 
     function set_whitelist_address(address _wl_address) external {
         //BitPharma can always update the address of the whitelist contract
@@ -65,7 +66,7 @@ contract bitpharma {
         emit ReaderRemoved(_reader, msg.sender);
     }
 
-    function newPrescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
+    function new_prescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  //only doctors can add elements in the array
         require(bitpharma_wl(whitelist_address).doctors(msg.sender), "Only doctors can issue new prescriptions!");
         require(bitpharma_wl(whitelist_address).patients(_patient), "This address does not match any patient");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
@@ -76,6 +77,7 @@ contract bitpharma {
         active_prescriptions[_patient]++;
         patient_readers[_patient][_patient] = true;
         patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))] = true;
+        patient_id_prescriptions[_patient].push(id);
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
 
@@ -116,21 +118,14 @@ contract bitpharma {
         }
         //prescriptions[_prescrId].quantity_claimed=0; maybe useless
         prescriptions[_prescrId].last_purchase=now;
+        prescription_to_pharmacy_quantity[_prescrId][msg.sender].push(_quantity);
+        prescription_to_pharmacy[_prescrId].push(msg.sender);
         emit Transaction(_prescrId, _quantity);
     }
 
-
-    function patient_prescriptions(address _patient) external view  returns(uint[] memory list_of_Prescriptions_Ids) {
+    function patient_prescriptions(address _patient) external view returns(uint[] memory) {
         require(patient_readers[_patient][msg.sender], "You can't access prescriptions!");
-        uint[] memory result = new uint[](active_prescriptions[_patient]);
-        uint counter = 0;
-        for (uint i = 0; i < prescriptions.length; i++) {
-            if (prescription_to_patient[i] == _patient && prescriptions[i].status<2) {
-                result[counter] = i;
-                counter++;
-            }
-        }
-        list_of_Prescriptions_Ids = result;
+        return patient_id_prescriptions[_patient];
     }
 
     function check_active_prescriptions(address _patient, string memory _drug) internal view returns(bool) {
@@ -138,13 +133,24 @@ contract bitpharma {
     }
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
-        require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] || msg.sender==prescriptions[_prescrId].doctor || bitpharma_wl(whitelist_address).pharmacies(msg.sender), "You can't see this prescription!");
+        require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] //readers of the patient can access the details
+                || msg.sender==prescriptions[_prescrId].doctor  //the doctor who issued the prescription can access the details
+                || bitpharma_wl(whitelist_address).pharmacies(msg.sender), //pharmacies can access the details
+                "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;
         can_I_buy = (prescriptions[_prescrId].purchase_cooldown+prescriptions[_prescrId].last_purchase < now);
         days_to_expiration = ((prescriptions[_prescrId].expiration - now) / 86400);
         status = prescriptions[_prescrId].status;
+    }
+
+    function get_prescription_pharmacies(uint _prescId) external view returns(address[] memory) {
+        return prescription_to_pharmacy[_prescId];
+    }
+
+    function get_prescription_pharmacy_quantity(uint _prescId, address _pharmacy) external view returns(uint[] memory) {
+        return prescription_to_pharmacy_quantity[_prescId][_pharmacy];
     }
 
 
