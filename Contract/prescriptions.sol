@@ -31,8 +31,8 @@ contract bitpharma {
         uint maxclaim; // max quantity claimable in a single purchase
         uint purchase_cooldown; //time (days) needed for the patient to be able to buy the drug again
         uint last_purchase; // timestamp of the latest purchase
-        uint expiration; // time left in days 
-        uint status; // status legend: 
+        uint expiration; // time left in days
+        uint status; // status legend:
         // 0-> prescription is issued
         // 1-> patient confirms purchase
         // 2-> pharma closed transaction successfully
@@ -72,7 +72,7 @@ contract bitpharma {
         emit ReaderRemoved(_reader, msg.sender);
     }
 
-    function new_prescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {  
+    function new_prescription(string calldata _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient) external {
         // a whitelisted doctor can issue a new prescriptions to a valid patient address
         require(bitpharma_wl(whitelist_address).doctors(msg.sender), "Only doctors can issue new prescriptions!");
         require(bitpharma_wl(whitelist_address).patients(_patient), "This address does not match any patient");
@@ -80,7 +80,7 @@ contract bitpharma {
         // further checks:
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         require(check_active_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
-        
+
         uint id = prescriptions.push(prescription(utils.lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
@@ -98,10 +98,14 @@ contract bitpharma {
         require(prescriptions[_prescrId].maxclaim>=_quantity, "You can't buy this much in a single purchase");
         require(prescriptions[_prescrId].quantity>=_quantity, "Claim exceeds quantity left...");
         require(prescriptions[_prescrId].last_purchase + prescriptions[_prescrId].purchase_cooldown<= now, "Wait a few more before buying again");
-        
+
+        address patient = prescription_to_patient[_prescrId];
+        string memory drug = prescriptions[_prescrId].drug;
+
         if(now>prescriptions[_prescrId].expiration) { // if that prescription has expired, change its status (????)
             prescriptions[_prescrId].status=3;
             active_prescriptions[prescription_to_patient[_prescrId]]--;
+            patient_active_prescriptions[patient][keccak256(bytes(utils.lowercase(drug)))] = false;
         }
         else {
             prescriptions[_prescrId].status=1;
@@ -114,7 +118,7 @@ contract bitpharma {
         require(bitpharma_wl(whitelist_address).pharmacies(msg.sender), "Only pharmacies can close transactions!");
         require(prescriptions[_prescrId].status==1, "This transaction can't be confirmed!");
         require(prescriptions[_prescrId].quantity_claimed==_quantity, "Agree with the patient on the quantity claimed");
-        
+
         address patient = prescription_to_patient[_prescrId];
         string memory drug = prescriptions[_prescrId].drug;
 
@@ -142,9 +146,9 @@ contract bitpharma {
     }
 
     function check_active_prescriptions(address _patient, string memory _drug) internal view returns(bool) {
-        // returns whether a prescription is currently active for a specific patient and a specific drug 
-        // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information. 
-        
+        // returns whether a prescription is currently active for a specific patient and a specific drug
+        // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information.
+
         return patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))];
     }
 
@@ -152,7 +156,7 @@ contract bitpharma {
         // prints out detail for a specific prescription
         // can only be accessed by:
         require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] // readers for that prescription's recipient
-                || msg.sender==prescriptions[_prescrId].doctor  // the doctor who issued the prescription 
+                || msg.sender==prescriptions[_prescrId].doctor  // the doctor who issued the prescription
                 || bitpharma_wl(whitelist_address).pharmacies(msg.sender), // pharmacies (all???)
                 "You can't see this prescription!");
         drug = prescriptions[_prescrId].drug;
