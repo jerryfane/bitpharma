@@ -1,4 +1,4 @@
-# Medical Prescriptions on Ethereum
+# M.ETH - Medical (Prescriptions) on Ethereum
 
 In Italy, a lot of medical prescriptions are still hand written: electronic prescription are only required when the drug is paid by the regional public system, but every pharmaceutical drug that legally requires a medical prescription can still be bought with a hand-written prescription. This leads to an authenticity problem. Moreover, it is common practice that a pharmacist does not ask for medical prescription, even if it is needed. These behaviors cause a serious problem of drug use disorders among the population. This project has the aim of overcoming these kind of issues. 
 
