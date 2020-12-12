@@ -1,12 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 import "./whitelist.sol";
-import {utils}  from "./bitpharma_utils.sol";
-
 
 contract bitpharma {
-
-    using utils for string;
 
     address bitpharma_manager;
     address whitelist_address; // address of the whitelist contract
@@ -48,7 +44,25 @@ contract bitpharma {
     mapping(address => uint[]) internal patient_id_prescriptions; // id of prescriptions (current and past) for each patient
     mapping(uint => mapping(address => uint[])) prescription_to_pharmacy_quantity; // for each prescription ID, map to the pharmacy who closed it and to the quantity
     mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the array of pharmacy who closed it
+	
+    function lowercase(string memory _str) internal pure returns (string memory) {
 
+        // CREDITS: https://gist.github.com/thomasmaclean/276cb6e824e48b7ca4372b194ec05b97
+
+		bytes memory bytes_str = bytes(_str);
+		bytes memory bytes_lower_str = new bytes(bytes_str.length);
+		for (uint i = 0; i < bytes_str.length; i++) {
+			// if uppercase character...
+			if ((uint8(bytes_str[i]) >= 65) && (uint8(bytes_str[i]) <= 90)) {
+				// we add 32 to make it lowercase
+				bytes_lower_str[i] = bytes1(uint8(bytes_str[i]) + 32);
+			} else {
+				bytes_lower_str[i] = bytes_str[i];
+			}
+		}
+		return string(bytes_lower_str);
+	}
+	
     function set_whitelist_address(address _wl_address) external {
         // BitPharma can always update the address of the whitelist contract
         require(msg.sender == bitpharma_manager, "Only BitPharma Manager can update the whitelist address");
@@ -81,11 +95,11 @@ contract bitpharma {
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
         require(check_active_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
 
-        uint id = prescriptions.push(prescription(utils.lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
+        uint id = prescriptions.push(prescription(lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
         patient_readers[_patient][_patient] = true;
-        patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))] = true;
+        patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))] = true;
         patient_id_prescriptions[_patient].push(id);
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
@@ -105,7 +119,7 @@ contract bitpharma {
         if(now>prescriptions[_prescrId].expiration) { // if that prescription has expired, change its status (????)
             prescriptions[_prescrId].status=3;
             active_prescriptions[prescription_to_patient[_prescrId]]--;
-            patient_active_prescriptions[patient][keccak256(bytes(utils.lowercase(drug)))] = false;
+            patient_active_prescriptions[patient][keccak256(bytes(lowercase(drug)))] = false;
         }
         else {
             prescriptions[_prescrId].status=1;
@@ -129,7 +143,7 @@ contract bitpharma {
         else { // if no quantity left after this purchase
             prescriptions[_prescrId].status = 2;
             active_prescriptions[patient]--;
-            patient_active_prescriptions[patient][keccak256(bytes(utils.lowercase(drug)))] = false;
+            patient_active_prescriptions[patient][keccak256(bytes(lowercase(drug)))] = false;
             emit Closed(_prescrId);
         }
         prescriptions[_prescrId].last_purchase=now;
@@ -149,7 +163,7 @@ contract bitpharma {
         // returns whether a prescription is currently active for a specific patient and a specific drug
         // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information.
 
-        return patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))];
+        return patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))];
     }
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {

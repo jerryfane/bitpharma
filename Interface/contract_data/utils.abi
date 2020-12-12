@@ -1,1 +1,0 @@
-[{"constant":true,"inputs":[{"internalType":"string","name":"_str","type":"string"}],"name":"lowercase","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"}]

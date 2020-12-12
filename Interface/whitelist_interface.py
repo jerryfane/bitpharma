@@ -11,7 +11,6 @@ with open('./contract_data/bitpharma_wl.bin') as file:
 
 ganache_URL = "HTTP://127.0.0.1:7545"
 w3 = Web3(Web3.HTTPProvider(ganache_URL))
-
 master=tk.Tk()
 master.geometry('1500x600')
 master.title('Medical prescription Ethereum')
@@ -42,6 +41,12 @@ def add_pharma():
     val_text=tk.Label(master,text='Pharmacy added!', fg='green')
     val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
 
+def add_patient():
+    address=str(pharma.get())
+    contract_deployed.functions.add_patient(address).transact()
+    val_text=tk.Label(master,text='Patient added!', fg='green')
+    val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
+
 def check_doctor():
     address=str(doc.get())
     validate_doctor=contract_deployed.functions.doctors(address).call()
@@ -61,6 +66,16 @@ def check_pharma():
     else:
         val_text=tk.Label(master,text='The Pharmacy is not registered!', fg='red')
         val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
+
+def check_patient():
+    address=str(pharma.get())
+    validate_pharma=contract_deployed.functions.patients(address).call()
+    if validate_pharma:
+        val_text=tk.Label(master,text='The patient is registered!', fg='green')
+        val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
+    else:
+        val_text=tk.Label(master,text='The patient is not registered!', fg='red')
+        val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
 
 for column in range(3):
     master.grid_columnconfigure(column, weight=1)
@@ -85,7 +100,6 @@ load = load.resize((200, 200))
 photoimage = ImageTk.PhotoImage(load)
 canvas.create_image(100, 100, image=photoimage)
 
-
 subtitle=tk.Label(master, text='Bitpharma address:', fg='green', font="arial 8")
 subtitle.grid(row=2, column=0, sticky='WE', padx=100, pady=10)
 
@@ -107,7 +121,7 @@ add_doctor_button=tk.Button(master, text='Add doctor', command=add_doctor,
 add_doctor_button.grid(row=5, column=1, sticky='WE', padx=100, pady=10)
 
 check_doctor_button=tk.Button(master, text='Check doctor', command=check_doctor,
-                              fg="green", bd=4, font="arial 15")
+                            fg="green", bd=4, font="arial 15")
 check_doctor_button.grid(row=5, column=2, sticky='WE', padx=100, pady=10)
 
 pharma=tk.Entry(master, justify=tk.CENTER, show="*")
@@ -118,8 +132,19 @@ add_pharma_button=tk.Button(master, text='Add pharmacy',command=add_pharma,
 add_pharma_button.grid(row=7, column=1, sticky='WE', padx=100, pady=10)
 
 check_pharma_button=tk.Button(master, text='Check Pharmacy',command=check_pharma,
-                              fg="green", bd=4, font="arial 15")
+                            fg="green", bd=4, font="arial 15")
 check_pharma_button.grid(row=7, column=2, sticky='WE', padx=100, pady=(10))
+
+patient=tk.Entry(master, justify=tk.CENTER, show="*")
+patient.grid(row=9, column=0, sticky='WE', padx=100, pady=10)
+
+add_patient_button=tk.Button(master, text='Add patient',command=add_patient,
+                            fg="green", bd=4, font="arial 15")
+add_patient_button.grid(row=9, column=1, sticky='WE', padx=100, pady=10)
+
+check_patient_button=tk.Button(master, text='Check patient',command=check_patient,
+                            fg="green", bd=4, font="arial 15")
+check_patient_button.grid(row=9, column=2, sticky='WE', padx=100, pady=10)
 
 if __name__=='__main__':
     master.mainloop()

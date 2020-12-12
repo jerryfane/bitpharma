@@ -4,6 +4,7 @@ import json
 import web3
 from web3 import Web3
 import tkinter.ttk
+from whitelist_interface import whitelist_interface
 
 with open('./contract_data/bitpharma.abi') as json_file:
     abi_ = json.loads(json_file.read())
@@ -207,11 +208,11 @@ def patient_window_():
             expire_in = details[4]
             status = details[5]
             to_print = f'''drug: {drugname}
-                quantity: {quantity}
-                max_claim: {max_claim}
-                can_buy: {can_buy}
-                expire_in: {expire_in} days
-                status: {status}'''
+                           quantity: {quantity}
+                           max_claim: {max_claim}
+                           can_buy: {can_buy}
+                           expire_in: {expire_in} days
+                           status: {status}'''
             descr=tk.Label(patient_window, text=to_print, font=10)
             descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
         except:
