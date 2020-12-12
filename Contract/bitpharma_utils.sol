@@ -1,7 +1,7 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
-contract bitpharma_utils {
+library utils {
 	
     function lowercase(string calldata _str) external pure returns (string memory) {
 
