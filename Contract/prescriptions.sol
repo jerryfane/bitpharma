@@ -5,9 +5,9 @@ import {utils}  from "./bitpharma_utils.sol";
 
 
 contract bitpharma {
-    
+
     using utils for string;
-    
+
     // restrict the deployment to only doctors?
     address bitpharma_manager;
     address whitelist_address; //whitelist  address is the address of the whitelist contract
@@ -41,7 +41,8 @@ contract bitpharma {
     prescription[] internal prescriptions;  //array of prescriptions
     mapping (uint => address) internal prescription_to_patient; //for each prescription ID, map to patient address
     mapping (address => uint) internal active_prescriptions; //number of active prescriptions given patient address
-    mapping(address => mapping(address => bool)) patient_readers; //addresses who can access patient information
+    mapping(address => mapping(address => bool)) internal patient_readers; //addresses who can access patient information
+    mapping(address => mapping(bytes32 => bool)) internal patient_active_prescriptions; //drug hash of active prescriptions for each patient
 
 
     function set_whitelist_address(address _wl_address) external {
@@ -69,11 +70,12 @@ contract bitpharma {
         require(bitpharma_wl(whitelist_address).patients(_patient), "This address does not match any patient");
         require(_daysToExpiration < 90, "You can't issue prescriptions for such long period of time");
         require( _purchaseCooldown*(_quantity/_maxclaim) <= _daysToExpiration, "Something is wrong please check...");
-        require(check_duplicate_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
+        require(check_active_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
         uint id = prescriptions.push(prescription(utils.lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
         active_prescriptions[_patient]++;
         patient_readers[_patient][_patient] = true;
+        patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))] = true;
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
 
@@ -99,6 +101,8 @@ contract bitpharma {
         require(bitpharma_wl(whitelist_address).pharmacies(msg.sender), "Only pharmacies can close transactions!");
         require(prescriptions[_prescrId].status==1, "This transaction can't be confirmed!");
         require(prescriptions[_prescrId].quantity_claimed==_quantity, "Agree with the patient on the quantity claimed");
+        address patient = prescription_to_patient[_prescrId];
+        string memory drug = prescriptions[_prescrId].drug;
 
         if (prescriptions[_prescrId].quantity - _quantity > 0 ){
             prescriptions[_prescrId].status = 0;
@@ -106,7 +110,8 @@ contract bitpharma {
         }
         else {
             prescriptions[_prescrId].status = 2;
-            active_prescriptions[prescription_to_patient[_prescrId]]--;
+            active_prescriptions[patient]--;
+            patient_active_prescriptions[patient][keccak256(bytes(utils.lowercase(drug)))] = false;
             emit Closed(_prescrId);
         }
         //prescriptions[_prescrId].quantity_claimed=0; maybe useless
@@ -128,15 +133,8 @@ contract bitpharma {
         list_of_Prescriptions_Ids = result;
     }
 
-
-    function check_duplicate_prescriptions(address _patient, string memory _drug) internal view returns(bool currently_prescribed) {
-        currently_prescribed = false;
-        string memory drug = utils.lowercase(_drug);
-        for (uint i = 0; i < prescriptions.length; i++) {
-            if (prescription_to_patient[i] == _patient  &&  keccak256(bytes(prescriptions[i].drug)) == keccak256(bytes(drug))) {
-                if (prescriptions[i].status<2) currently_prescribed = true;
-            }
-        }
+    function check_active_prescriptions(address _patient, string memory _drug) internal view returns(bool) {
+        return patient_active_prescriptions[_patient][keccak256(bytes(utils.lowercase(_drug)))];
     }
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
