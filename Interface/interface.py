@@ -87,13 +87,36 @@ def doctor_window_():
 
     def patient_prescriptions():
         address=str(patient_address_input2.get())
-        details=patient_prescriptions_global(address)
-        print(details)
+        try:
+            details=patient_prescriptions_global(address)
+            descr=tk.Label(doctor_window, text=details, font=10)
+            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(doctor_window, text="You can't see the patient prescritpions", font=10)
+            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
+        
 
     def prescription_details():
         _id=int(prescrId_input.get())
-        details=prescription_details_global(_id)
-        print(details)
+        try:
+            details=prescription_details_global(_id)
+            drugname = details[0]
+            quantity = details[1]
+            max_claim = details[2]
+            can_buy = details[3]
+            expire_in = details[4]
+            status = details[5]
+            to_print = f'''drug: {drugname}
+                quantity: {quantity}
+                max_claim: {max_claim}
+                can_buy: {can_buy}
+                expire_in: {expire_in} days
+                status: {status}'''
+            descr=tk.Label(doctor_window, text=to_print, font=10)
+            descr.grid(row=10,column=2,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(doctor_window, text="You can't see the details of this prescritpion", font=10)
+            descr.grid(row=10,column=2,sticky='WE', padx=100,pady=10)
 
     doctor_window=tk.Toplevel()
     doctor_window.geometry('1200x700')
@@ -165,13 +188,35 @@ def doctor_window_():
 def patient_window_():
     def patient_prescriptions():
         address=str(id_entry.get())
-        details=patient_prescriptions_global(address)
-        print(details)
+        try:
+            details=patient_prescriptions_global(address)
+            descr=tk.Label(patient_window, text=details, font=10)
+            descr.grid(row=4,column=0,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(patient_window, text="You can't see the patient prescritpions", font=10)
+            descr.grid(row=4,column=0,sticky='WE', padx=100,pady=10)
 
     def prescription_details():
         _id=int(prescr_details.get())
-        details=prescription_details_global(_id)
-        print(details)
+        try:
+            details=prescription_details_global(_id)
+            drugname = details[0]
+            quantity = details[1]
+            max_claim = details[2]
+            can_buy = details[3]
+            expire_in = details[4]
+            status = details[5]
+            to_print = f'''drug: {drugname}
+                quantity: {quantity}
+                max_claim: {max_claim}
+                can_buy: {can_buy}
+                expire_in: {expire_in} days
+                status: {status}'''
+            descr=tk.Label(patient_window, text=to_print, font=10)
+            descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(patient_window, text="You can't see the details of this prescritpion", font=10)
+            descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
 
     def add_doctor():
         address=str(doctor_entry.get())
@@ -197,10 +242,10 @@ def patient_window_():
         val_purchase = purchase_input.get().split(',')
         id_ = int(val_purchase[0])
         quantity_ = int(val_purchase[1])
-        contract_deployed.functions.patient_purchasing(id_, quantity_).call()
-        validate_purchase=contract_deployed.functions.patient_purchasing(id_, quantity_).transact()
-        print(validate_purchase)
-
+        contract_deployed.functions.patient_purchasing(id_, quantity_).transact()
+        descr=tk.Label(patient_window, text='Validated!', font=10)
+        descr.grid(row=4,column=1,sticky='WE', padx=100,pady=10)
+    
     patient_window=tk.Toplevel()
     patient_window.geometry('1200x1500')
     patient_window.title('Patient interface')
@@ -273,18 +318,46 @@ def patient_window_():
 def pharma_window_():
     def sell_drug():
         _id=int(prescID.get())
-        quantity=int(quantity_input.get())
-        contract_deployed.functions.close_transaction(_id,quantity).transact()
+        try:
+            quantity=int(quantity_input.get())
+            contract_deployed.functions.close_transaction(_id,quantity).transact()
+            descr=tk.Label(pharma_window, text="Drug sold!", font=10)
+            descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
+        except: #da gestire le exception per i vari tipi di problema...
+            descr=tk.Label(pharma_window, text="Drug not sold!", font=10)
+            descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
 
     def patient_prescriptions():
         address=str(patient_address_input2.get())
-        details=patient_prescriptions_global(address)
-        print(details)
+        try:
+            details=patient_prescriptions_global(address)
+            descr=tk.Label(pharma_window, text=details, font=10)
+            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(pharma_window, text="You can't see the patient prescritpions", font=10)
+            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
 
     def prescription_details():
         _id=int(prescrId_input.get())
-        details=prescription_details_global(_id)
-        print(details)
+        try:
+            details=prescription_details_global(_id)
+            drugname = details[0]
+            quantity = details[1]
+            max_claim = details[2]
+            can_buy = details[3]
+            expire_in = details[4]
+            status = details[5]
+            to_print = f'''drug: {drugname}
+                quantity: {quantity}
+                max_claim: {max_claim}
+                can_buy: {can_buy}
+                expire_in: {expire_in} days
+                status: {status}'''
+            descr=tk.Label(pharma_window, text=to_print, font=10)
+            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(pharma_window, text="You can't see the details of this prescritpion", font=10)
+            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)    
 
     pharma_window=tk.Toplevel()
     pharma_window.geometry('1200x600')
