@@ -38,7 +38,6 @@ contract bitpharma {
 
     prescription[] internal prescriptions;  // array of prescriptions
     mapping (uint => address) internal prescription_to_patient; // for each prescription ID, map to patient address
-    mapping (address => uint) internal active_prescriptions; // number of active prescriptions, given patient address
     mapping(address => mapping(address => bool)) internal patient_readers; // addresses who can access patient information
     mapping(address => mapping(bytes32 => bool)) internal patient_active_prescriptions; // drug hash of active prescriptions for each patient
     mapping(address => uint[]) internal patient_id_prescriptions; // id of prescriptions (current and past) for each patient
@@ -46,9 +45,8 @@ contract bitpharma {
     mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the array of pharmacy who closed it
 	
     function lowercase(string memory _str) internal pure returns (string memory) {
-
-        // CREDITS: https://gist.github.com/thomasmaclean/276cb6e824e48b7ca4372b194ec05b97
-
+    	// Solidity cannot compare strings directly, this is needed to avoid errors when comparing strings by their hashes. 
+        // adapted from: https://gist.github.com/thomasmaclean/276cb6e824e48b7ca4372b194ec05b97
 		bytes memory bytes_str = bytes(_str);
 		bytes memory bytes_lower_str = new bytes(bytes_str.length);
 		for (uint i = 0; i < bytes_str.length; i++) {
@@ -97,7 +95,6 @@ contract bitpharma {
 
         uint id = prescriptions.push(prescription(lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
         prescription_to_patient[id] = _patient;
-        active_prescriptions[_patient]++;
         patient_readers[_patient][_patient] = true;
         patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))] = true;
         patient_id_prescriptions[_patient].push(id);
@@ -118,7 +115,6 @@ contract bitpharma {
 
         if(now>prescriptions[_prescrId].expiration) { // if that prescription has expired, change its status (????)
             prescriptions[_prescrId].status=3;
-            active_prescriptions[prescription_to_patient[_prescrId]]--;
             patient_active_prescriptions[patient][keccak256(bytes(lowercase(drug)))] = false;
         }
         else {
@@ -142,7 +138,6 @@ contract bitpharma {
         }
         else { // if no quantity left after this purchase
             prescriptions[_prescrId].status = 2;
-            active_prescriptions[patient]--;
             patient_active_prescriptions[patient][keccak256(bytes(lowercase(drug)))] = false;
             emit Closed(_prescrId);
         }
@@ -160,7 +155,7 @@ contract bitpharma {
     }
 
     function check_active_prescriptions(address _patient, string memory _drug) internal view returns(bool) {
-        // returns whether a prescription is currently active for a specific patient and a specific drug
+        // returns whether a prescription is currently open for a specific patient and a specific drug
         // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information.
 
         return patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))];
