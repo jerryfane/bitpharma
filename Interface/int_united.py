@@ -1,10 +1,8 @@
 import tkinter as tk
 from PIL import ImageTk, Image
 import json
-import web3
 from web3 import Web3
 import tkinter.ttk
-#from whitelist_interface import whitelist_interface
 
 with open('./contract_data/bitpharma.abi') as json_file:
     abi_ = json.loads(json_file.read())
@@ -96,17 +94,17 @@ def doctor_window_():
         purchaseCooldown =int(purchaseCooldown_input.get())
         daysToExpiration=int(daysToExpiration_input.get())
         patient=str(patient_address_input.get())
-        contract_deployed.functions.newPrescription(drug,quantity,maxclaim,purchaseCooldown,daysToExpiration,patient).transact()
+        contract_deployed.functions.new_prescription(drug,quantity,maxclaim,purchaseCooldown,daysToExpiration,patient).transact()
 
     def patient_prescriptions():
         address=str(patient_address_input2.get())
         try:
             details=patient_prescriptions_global(address)
             descr=tk.Label(doctor_window, text=details, font=10)
-            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
+            descr.grid(row=8,column=2,sticky='WE', padx=100,pady=10)
         except:
             descr=tk.Label(doctor_window, text="You can't see the patient prescritpions", font=10)
-            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
+            descr.grid(row=8,column=2,sticky='WE', padx=100,pady=10)
         
 
     def prescription_details():
@@ -126,17 +124,17 @@ def doctor_window_():
                 expire_in: {expire_in} days
                 status: {status}'''
             descr=tk.Label(doctor_window, text=to_print, font=10)
-            descr.grid(row=10,column=2,sticky='WE', padx=100,pady=10)
+            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
         except:
             descr=tk.Label(doctor_window, text="You can't see the details of this prescritpion", font=10)
-            descr.grid(row=10,column=2,sticky='WE', padx=100,pady=10)
+            descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
 
     doctor_window=tk.Toplevel()
     doctor_window.geometry('1200x700')
     doctor_window.title('Doctor interface')
     for col in range(3):
         doctor_window.grid_columnconfigure(col, weight=1)
-    for row in range(9):
+    for row in range(10):
         doctor_window.grid_rowconfigure(row, weight=1)
 
     title_doctor=tk.Label(doctor_window, text='Hello doctor!', font=(30))
@@ -206,8 +204,7 @@ def patient_window_():
             descr=tk.Label(patient_window, text=details, font=10)
             descr.grid(row=4,column=0,sticky='WE', padx=100,pady=10)
         except:
-            descr=tk.Label(patient_window, text="You can't see the patient prescritpions", font=10)
-            descr.grid(row=4,column=0,sticky='WE', padx=100,pady=10)
+            pass
 
     def prescription_details():
         _id=int(prescr_details.get())
@@ -345,10 +342,10 @@ def pharma_window_():
         try:
             details=patient_prescriptions_global(address)
             descr=tk.Label(pharma_window, text=details, font=10)
-            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
+            descr.grid(row=6,column=2,sticky='WE', padx=100,pady=10)
         except:
             descr=tk.Label(pharma_window, text="You can't see the patient prescritpions", font=10)
-            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
+            descr.grid(row=6,column=2,sticky='WE', padx=100,pady=10)
 
     def prescription_details():
         _id=int(prescrId_input.get())
@@ -360,17 +357,17 @@ def pharma_window_():
             can_buy = details[3]
             expire_in = details[4]
             status = details[5]
-            to_print = f'''drug: {drugname}
-                quantity: {quantity}
-                max_claim: {max_claim}
-                can_buy: {can_buy}
-                expire_in: {expire_in} days
-                status: {status}'''
+            to_print = f''' drug: {drugname}
+                            quantity: {quantity}
+                            max_claim: {max_claim}
+                            can_buy: {can_buy}
+                            expire_in: {expire_in} days
+                            status: {status}'''
             descr=tk.Label(pharma_window, text=to_print, font=10)
-            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)
+            descr.grid(row=7,column=2,sticky='WE', padx=100,pady=10)
         except:
             descr=tk.Label(pharma_window, text="You can't see the details of this prescritpion", font=10)
-            descr.grid(row=7,column=0,sticky='WE', padx=100,pady=10)    
+            descr.grid(row=7,column=2,sticky='WE', padx=100,pady=10)    
 
     pharma_window=tk.Toplevel()
     pharma_window.geometry('1200x600')
@@ -402,7 +399,7 @@ def pharma_window_():
     close_transaction_button.grid(row=3,column=2,sticky='WE', padx=100,pady=10)
 
     tkinter.ttk.Separator(pharma_window, orient='horizontal').grid(column=0,
-    row=4, sticky='WE',padx=10, pady=10,columnspan=3)
+    row=5, sticky='WE',padx=10, pady=10,columnspan=3)
 
     second_section=tk.Label(pharma_window, text='Manage Prescriptions')
     second_section.grid(row=5,column=1,sticky='WE', padx=10,pady=10)
@@ -425,7 +422,7 @@ def pharma_window_():
 
 def bitpharma_window_():
     bitpharma_window=tk.Toplevel()
-    bitpharma_window.geometry('1500x600')
+    bitpharma_window.geometry('1500x800')
     bitpharma_window.title('Medical prescription Ethereum')
     
     def init_whitelist():
@@ -449,9 +446,9 @@ def bitpharma_window_():
             global contract_deployed_
             contract_deployed_ = w3.eth.contract(address = contract_address, abi = abi_wl)
             add_contract = contract_deployed_.address
-            text_v = f'Contract deployed \n Hash: {add_contract}'
-            text=tk.Label(bitpharma_window,text=text_v, fg='green')
-            text.grid(row=3, column=2, sticky='WE', padx=30, pady=10)
+            # text_v = f'Contract deployed \n Hash: {add_contract}'
+            # text=tk.Label(bitpharma_window,text=text_v, fg='green')
+            # text.grid(row=3, column=2, sticky='WE', padx=30, pady=10)
 
             #Set whitelist
             contract_deployed.functions.set_whitelist_address(add_contract).transact()
@@ -529,7 +526,7 @@ def bitpharma_window_():
 
     for column in range(3):
         bitpharma_window.grid_columnconfigure(column, weight=1)
-    for row in range(10):
+    for row in range(11):
         bitpharma_window.grid_rowconfigure(row, weight=1)
 
     back_image = Image.open('./images/pharmacy.jpg')
@@ -547,13 +544,11 @@ def bitpharma_window_():
     pharma_label = tk.Label(bitpharma_window, image=photoimage)
     pharma_label.image = photoimage
     pharma_label.place(x=675, y=65)
-
-    deploy_button=tk.Button(bitpharma_window,text='Initalize Whitelist', command=init_whitelist,
+    
+    
+    deploy_button=tk.Button(bitpharma_window,text='START', command=init_whitelist,
                             fg="green", bd=4, font="arial 15")
     deploy_button.grid(row=3, column=1, sticky='WE', padx=100)
-
-    subtitle=tk.Label(bitpharma_window, text='Manage users:', fg='green', font="arial 8")
-    subtitle.grid(row=4, column=0, sticky='WE', padx=100)
 
     doc=tk.Entry(bitpharma_window,justify=tk.CENTER, show="*")
     doc.grid(row=5, column=0, sticky='WE', padx=100, pady=10)
