@@ -94,7 +94,13 @@ def doctor_window_():
         purchaseCooldown =int(purchaseCooldown_input.get())
         daysToExpiration=int(daysToExpiration_input.get())
         patient=str(patient_address_input.get())
-        contract_deployed.functions.new_prescription(drug,quantity,maxclaim,purchaseCooldown,daysToExpiration,patient).transact()
+        try:
+            contract_deployed.functions.new_prescription(drug,quantity,maxclaim,purchaseCooldown,daysToExpiration,patient).transact()
+            descr=tk.Label(doctor_window, text="Prescribed!", font=10, fg='green')
+            descr.grid(row=5,column=2,sticky='WE', padx=100,pady=10)
+        except:
+            descr=tk.Label(doctor_window, text="There is a mistake in the prescription!", font=10, fg ='red')
+            descr.grid(row=5,column=2,sticky='WE', padx=100,pady=10)
 
     def patient_prescriptions():
         address=str(patient_address_input2.get())
@@ -117,7 +123,7 @@ def doctor_window_():
             can_buy = details[3]
             expire_in = details[4]
             status = details[5]
-            to_print = f'''drug: {drugname}
+            to_print = f''' drug: {drugname}
                 quantity: {quantity}
                 max_claim: {max_claim}
                 can_buy: {can_buy}
@@ -545,10 +551,14 @@ def bitpharma_window_():
     pharma_label.image = photoimage
     pharma_label.place(x=675, y=65)
     
-    
-    deploy_button=tk.Button(bitpharma_window,text='START', command=init_whitelist,
-                            fg="green", bd=4, font="arial 15")
-    deploy_button.grid(row=3, column=1, sticky='WE', padx=100)
+    try:
+        contract_deployed_
+        subtitle=tk.Label(bitpharma_window, text='Contract deployed!\n you can check users here:', fg='green', font="arial 8")
+        subtitle.grid(row=3, column=1, sticky='WE', padx=100)
+    except:
+        deploy_button=tk.Button(bitpharma_window,text='START', command=init_whitelist,
+                                fg="green", bd=4, font="arial 15")
+        deploy_button.grid(row=3, column=1, sticky='WE', padx=100)
 
     doc=tk.Entry(bitpharma_window,justify=tk.CENTER, show="*")
     doc.grid(row=5, column=0, sticky='WE', padx=100, pady=10)
