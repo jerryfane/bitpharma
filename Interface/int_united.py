@@ -12,6 +12,12 @@ with open('./contract_data/bitpharma.abi') as json_file:
 with open('./contract_data/bitpharma.bin') as file:
     bin_ = file.read()
 
+with open('./contract_data/bitpharma_wl.abi') as json_file:
+    abi_wl = json.loads(json_file.read())
+
+with open('./contract_data/bitpharma_wl.bin') as file:
+    bin_wl = file.read()
+
 ganache_URL = "HTTP://127.0.0.1:7545"
 w3 = Web3(Web3.HTTPProvider(ganache_URL))
 
@@ -22,14 +28,8 @@ master.title('Medical prescription Ethereum')
 # Bitpharma login must be the first one, cannot acces other contracts
 def bitpharma_login():
     bitpharma_manager=str(id_entry.get())
-    try:
-        w3.eth.defaultAccount = bitpharma_manager
-        bitpharma_window_()
-
-    except web3.exceptions.InvalidAddress:
-        text=tk.Label(master, text='You are not the BigPharma manager',
-                      bg ='sky blue', fg='red')
-        text.grid(row=2, column=0, sticky='WE', padx=100, pady=10)
+    w3.eth.defaultAccount = bitpharma_manager
+    bitpharma_window_()
 
 def patient_login():
     try:
@@ -37,7 +37,6 @@ def patient_login():
         patient_account=str(id_entry.get())
         w3.eth.defaultAccount = patient_account
         access = contract_deployed_.functions.patients(patient_account).call()
-        print(access)
         if access:
             patient_window_()
         else:
@@ -425,14 +424,6 @@ def pharma_window_():
     prescription_details_button.grid(row=7,column=1,sticky='WE', padx=40,pady=10)
 
 def bitpharma_window_():
-    with open('./contract_data/bitpharma_wl.abi') as json_file:
-        abi_wl = json.loads(json_file.read())
-
-    with open('./contract_data/bitpharma_wl.bin') as file:
-        bin_wl = file.read()
-
-    ganache_URL = "HTTP://127.0.0.1:7545"
-    w3 = Web3(Web3.HTTPProvider(ganache_URL))
     bitpharma_window=tk.Toplevel()
     bitpharma_window.geometry('1500x600')
     bitpharma_window.title('Medical prescription Ethereum')
@@ -475,21 +466,36 @@ def bitpharma_window_():
 
     def add_doctor():
         address=str(doc.get())
-        contract_deployed_.functions.add_doctor(address).transact()
-        val_text=tk.Label(bitpharma_window,text='Doctor added!', fg='green')
-        val_text.grid(row=6, column=1, sticky='WE', padx=30, pady=10)
+        try:
+            contract_deployed_.functions.add_doctor(address).transact()
+            val_text=tk.Label(bitpharma_window,text='Doctor added!', fg='green')
+            val_text.grid(row=6, column=1, sticky='WE', padx=30, pady=10)
+        except:
+            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+                         fg='red')
+            text.grid(row=6, column=1, sticky='WE', padx=100, pady=10)
 
     def add_pharma():
         address=str(pharma.get())
-        contract_deployed_.functions.add_pharmacy(address).transact()
-        val_text=tk.Label(bitpharma_window,text='Pharmacy added!', fg='green')
-        val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
+        try:
+            contract_deployed_.functions.add_pharmacy(address).transact()
+            val_text=tk.Label(bitpharma_window,text='Pharmacy added!', fg='green')
+            val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
+        except:
+            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+                         fg='red')
+            text.grid(row=8, column=0, sticky='WE', padx=100, pady=10)
 
     def add_patient():
         address=str(patient.get())
-        contract_deployed_.functions.add_patient(address).transact()
-        val_text=tk.Label(bitpharma_window,text='Patient added!', fg='green')
-        val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
+        try:
+            contract_deployed_.functions.add_patient(address).transact()
+            val_text=tk.Label(bitpharma_window,text='Patient added!', fg='green')
+            val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
+        except:
+            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+                         fg='red')
+            text.grid(row=10, column=0, sticky='WE', padx=100, pady=10)
 
     def check_doctor():
         address=str(doc.get())
@@ -608,7 +614,6 @@ canvas.create_image(100, 100, image=photoimage)
 subtitle=tk.Label(master, text='Login with your key:', bg ='sky blue')
 subtitle.grid(row=2,column=0,sticky='WE', padx=100, pady=1)
 
-global id_entry
 id_entry=tk.Entry(master, justify=tk.CENTER, show="*")
 id_entry.grid(row=3,column=0,sticky='WE', padx=100, pady=10)
 
