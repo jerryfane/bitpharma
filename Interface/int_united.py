@@ -24,12 +24,6 @@ def bitpharma_login():
     bitpharma_manager=str(id_entry.get())
     try:
         w3.eth.defaultAccount = bitpharma_manager
-        contract = w3.eth.contract(bitpharma_manager, abi = abi_, bytecode = bin_)
-        tx_hash=contract.constructor().transact() #deploy
-        tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-        contract_address = tx_receipt['contractAddress'] ## address of the contract
-        global contract_deployed
-        contract_deployed = w3.eth.contract(address = contract_address, abi = abi_)
         bitpharma_window_()
 
     except web3.exceptions.InvalidAddress:
@@ -42,7 +36,8 @@ def patient_login():
         contract_deployed
         patient_account=str(id_entry.get())
         w3.eth.defaultAccount = patient_account
-        access = contract_deployed_.functions.patients(patient_account).call()        
+        access = contract_deployed_.functions.patients(patient_account).call()
+        print(access)
         if access:
             patient_window_()
         else:
@@ -431,10 +426,10 @@ def pharma_window_():
 
 def bitpharma_window_():
     with open('./contract_data/bitpharma_wl.abi') as json_file:
-        abi_ = json.loads(json_file.read())
+        abi_wl = json.loads(json_file.read())
 
     with open('./contract_data/bitpharma_wl.bin') as file:
-        bin_ = file.read()
+        bin_wl = file.read()
 
     ganache_URL = "HTTP://127.0.0.1:7545"
     w3 = Web3(Web3.HTTPProvider(ganache_URL))
@@ -443,13 +438,36 @@ def bitpharma_window_():
     bitpharma_window.title('Medical prescription Ethereum')
     
     def init_whitelist():
-        #address=str(bitpharma_manager_entry.get())
+        bitpharma_manager=str(id_entry.get())
         try:
+            #Deploying bigpharma contract
+            w3.eth.defaultAccount = bitpharma_manager
+            contract = w3.eth.contract(bitpharma_manager, abi = abi_, bytecode = bin_)
+            tx_hash=contract.constructor().transact() 
+            tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+            contract_address = tx_receipt['contractAddress'] ## address of the contract
+            global contract_deployed
+            contract_deployed = w3.eth.contract(address = contract_address, abi = abi_)
+
+            #Deploying whitelist contract
+            w3.eth.defaultAccount = bitpharma_manager
+            contract = w3.eth.contract(bitpharma_manager, abi = abi_wl, bytecode = bin_wl)
+            tx_hash=contract.constructor().transact() 
+            tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+            contract_address = tx_receipt['contractAddress'] 
+            global contract_deployed_
+            contract_deployed_ = w3.eth.contract(address = contract_address, abi = abi_wl)
+            add_contract = contract_deployed_.address
+            text_v = f'Contract deployed \n Hash: {add_contract}'
+            text=tk.Label(bitpharma_window,text=text_v, fg='green')
+            text.grid(row=3, column=2, sticky='WE', padx=30, pady=10)
+
+            #Set whitelist
             contract_deployed.functions.set_whitelist_address(add_contract).transact()
             text=tk.Label(bitpharma_window, text='Whitelist Set!', fg='green')
             text.grid(row=4, column=1, sticky='WE', padx=30, pady=10)
             subtitle=tk.Label(master, text='Contract deployed by BitPharma\n Login with your account:',
-                              bg ='sky blue', fg='green')
+                                bg ='sky blue', fg='green')
             subtitle.grid(row=2,column=0,sticky='WE', padx=100, pady=1)
         except:
             text=tk.Label(bitpharma_window, text='Whitelist not set: insert a valid address!', fg='red')
@@ -468,7 +486,7 @@ def bitpharma_window_():
         val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
 
     def add_patient():
-        address=str(pharma.get())
+        address=str(patient.get())
         contract_deployed_.functions.add_patient(address).transact()
         val_text=tk.Label(bitpharma_window,text='Patient added!', fg='green')
         val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
@@ -494,7 +512,7 @@ def bitpharma_window_():
             val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
 
     def check_patient():
-        address=str(pharma.get())
+        address=str(patient.get())
         validate_pharma=contract_deployed_.functions.patients(address).call()
         if validate_pharma:
             val_text=tk.Label(bitpharma_window,text='The patient is registered!', fg='green')
@@ -517,34 +535,12 @@ def bitpharma_window_():
     title=tk.Label(bitpharma_window, text='Welcome to Medical prescription Ethereum!', font=30, fg="green")
     title.grid(row=0,column=1,sticky='WE', padx=10, pady=(10))
 
-    frame = tk.Frame(bitpharma_window)
-    frame.grid(row=1, column=1)
-    canvas = tk.Canvas(frame, bg="black", width=200, height=200)
-    canvas.pack()
     load = Image.open('./images/logo_pharma.png')
-    load = load.resize((200, 200))
+    load = load.resize((100, 100))
     photoimage = ImageTk.PhotoImage(load)
-    canvas.create_image(100, 100, image=photoimage)
-
-    bitpharma_manager=str(id_entry.get())
-    w3.eth.defaultAccount = bitpharma_manager
-    contract = w3.eth.contract(bitpharma_manager, abi = abi_, bytecode = bin_)
-    tx_hash=contract.constructor().transact() #deploy
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    contract_address = tx_receipt['contractAddress'] ## address of the contract
-    global contract_deployed_
-    contract_deployed_ = w3.eth.contract(address = contract_address, abi = abi_)
-    add_contract = contract_deployed_.address
-    text_v = f'Contract deployed \n Hash: {add_contract}'
-    text=tk.Label(bitpharma_window,text=text_v, fg='green')
-    text.grid(row=3, column=2, sticky='WE', padx=30, pady=10)
-
-
-    subtitle=tk.Label(bitpharma_window, text='Bitpharma address:', fg='green', font="arial 8")
-    subtitle.grid(row=2, column=0, sticky='WE', padx=100, pady=10)
-
-    bitpharma_manager_entry=tk.Entry(bitpharma_window,justify=tk.CENTER, show="*")
-    bitpharma_manager_entry.grid(row=3, column=0, sticky='WE', padx=100, pady=10)
+    pharma_label = tk.Label(bitpharma_window, image=photoimage)
+    pharma_label.image = photoimage
+    pharma_label.place(x=675, y=65)
 
     deploy_button=tk.Button(bitpharma_window,text='Initalize Whitelist', command=init_whitelist,
                             fg="green", bd=4, font="arial 15")
