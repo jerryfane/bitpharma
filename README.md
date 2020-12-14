@@ -29,16 +29,16 @@ This process is enabled by two contracts:
 - **whitelist** 
 - **prescriptions**
 
-#### Whitelist
+### Whitelist
 The ***whitelist*** contract is used to manage users - *doctors, patients, pharmacies* - registered on BitPharma via mappings (address, bool). In particular, only the BitPharma manager can add or remove users, and these mappings will be used in the core contract - *prescriptions* - to verify the addresses. In this way, we can ensure that prescriptions are filled by a registered physician, directed towards addresses corresponding to valid patients, and drugs are only sold by a certified pharmacy.
 
-#### Prescriptions
+### Prescriptions
 
 Let us now investigate our main contract and its functionalities. 
 
 **Prescriptions** are embodied in the stuct *prescriptions*. In particular, we have taken into account the possibility of issuing repeatable prescriptions, i.e. prescriptions that allow the same prescription to be dispensed more than once. For this reason we added some variables such as the purchase_cooldown to allow the doctor to set a time before which the patient cannot re-purchase the medicine; e.g. one pack per month for a 6 months period. 
 
-Specifically, the struct **prescription** is characterized by the following attributes: 
+Specifically, the struct `prescription` is characterized by the following attributes: 
 
  1. *drug*: name of the drug to be prescribed
  2. *quantity*: total quantity of the drug claimable before the prescription expires
