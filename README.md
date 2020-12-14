@@ -65,4 +65,9 @@ We used internal `mappings` to connect:
 `new_prescription`: with this function, a whitelisted doctor can issue a new prescription to a valid patient address. Authentication is achieved through require functions that ascertains that the address is a registered doctor/patient, by verifying the whitelist contract. The function takes as inputs the drug name, its quantity, max claim, purchase cooldown, days to expiration and patient's address. In particular, to make sure the prescription is not issued with an expiration date greater than three months, we have included a require function. The same was done to be assured that the expiration date is not less than the purchase cooldown, multiplied by the quantity, divided by the max claim. If it were the case, the patient would not be able to purchase the prescribed amount of medicine by the expiration date. Finally, the `check_active_prescriptions`function checks whether the patient already has an active prescription for the same drug. 
 By calling this function, patient's information is updated, adding the prescription to the *patient_active_prescriptions* array. 
 
+The following functions come into play when, once the prescription has been issued by the doctor, the patient wants to purchase the medicine. 
+
+`patient_purchaising`: through the id_prescription, the patient can launch the request to purchase the medicine. If the transaction is successful, the prescription status updates to 1. 
+
+Once the prescription status is equal to 1 the pharmacy can proceed with `close_transaction`: this will close the transaction and sell the medicine to the patient. If the quantity issued by the doctor runs out, then the prescription is closed with status 2. Otherwise, the quantity issued by the doctor is reduced by the quantity purchased and the prescription status is changed back to 0. In this way, the prescription will still be available to the patient for the remaining quantity. 
 
