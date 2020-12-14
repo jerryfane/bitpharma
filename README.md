@@ -52,8 +52,12 @@ Specifically, the struct **prescription** is characterized by the following attr
  
  At a more developed stage, most of these attributes would be constrained to values that comply with current regulation. For instance, Italian laws allow for prescriptions of up to two packages for most drugs, which increases to three for drugs used to treat chronic diseases and to six for injectable antibiotics. This could be achieved by allowing the contract to communicate with an external database that would contain all of these requirements, and then add checks in the code to ensure full compliance to the regulation.
 
-**qui vanno spiegati i vari mapping e le array**
-
+We used internal `mappings` to connect:
+1. each prescription ID to the patient address;
+2. drug hashes of active prescriptions to each patient;
+3. each prescription ID to the pharmacy who closed it and to the quantity;
+4. prescription IDs to the array of the pharmacy who closed it
+5. A mapping of mapping is used for the addresses who can access patient information. These addresses are called *readers*: they are authorized by the patient to read all of their prescriptions (they are usually doctors, but can also be family members etc.). The patient is the only one who can add or remove readers, through the `patient_remove_reader` and `patient_add_reader` functions, in this way his privacy will be protected.
 `set_whitelist_address`: this function can only be used by the bitpharma mananger and it is necessary to link the *core contract* to the *whitelist* one. In this way the address of a pharmacy/physician/patient will be linked to the one registered in the whitelist. 
 
 `new_prescription`: with this function, a whitelisted doctor can issue a new prescription to a valid patient address. Authentication is achieved through require functions that ascertains that the address is a registered doctor/patient, by verifying the whitelist contract. The function takes as inputs the drug name, its quantity, max claim, purchase cooldown, days to expiration and patient's address. In particular, to make sure the prescription is not issued with an expiration date greater than three months, we have included a require function. The same was done to be assured that the expiration date is not less than the purchase cooldown, multiplied by the quantity, divided by the max claim. If it were the case, the patient would not be able to purchase the prescribed amount of medicine by the expiration date. Finally, the `check_active_prescriptions`function checks whether the patient already has an active prescription for the same drug. 
