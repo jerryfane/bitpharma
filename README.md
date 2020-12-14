@@ -69,5 +69,5 @@ The following functions come into play when, once the prescription has been issu
 
 `patient_purchaising`: through the id_prescription, the patient can launch the request to purchase the medicine. If the transaction is successful, the prescription status updates to 1. 
 
-Once the prescription status is equal to 1 the pharmacy can proceed with `close_transaction`: this will close the transaction and sell the medicine to the patient. If the quantity issued by the doctor runs out, then the prescription is closed with status 2. Otherwise, the quantity issued by the doctor is reduced by the quantity purchased and the prescription status is changed back to 0. In this way, the prescription will still be available to the patient for the remaining quantity. 
+Once the prescription status is equal to 1 the pharmacy can proceed with the `close_transaction` function: this will close the transaction and sell the medicine to the patient. If the quantity issued by the doctor runs out, then the prescription is closed with status 2. Otherwise, the quantity issued by the doctor is reduced by the quantity purchased and the prescription status is changed back to 0. In this way, the prescription will still be available to the patient for the remaining quantity. 
 
