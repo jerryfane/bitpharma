@@ -51,6 +51,8 @@ Specifically, the struct `prescription` is characterized by the following attrib
  9. *doctor*: doctor who issued the prescription
  
  At a more developed stage, most of these attributes would be constrained to values that comply with current regulation. For instance, Italian laws allow for prescriptions of up to two packages for most drugs, which increases to three for drugs used to treat chronic diseases and to six for injectable antibiotics. This could be achieved by allowing the contract to communicate with an external database that would contain all of these requirements, and then add checks in the code to ensure full compliance to the regulation.
+ 
+ **serve una minima parte discorsiva?**
 
 We used internal `mappings` to connect:
 1. each prescription ID to the patient address;
