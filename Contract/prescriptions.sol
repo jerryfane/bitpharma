@@ -41,11 +41,14 @@ contract bitpharma {
     mapping(address => mapping(address => bool)) internal patient_readers; // addresses who can access patient information
     mapping(address => mapping(bytes32 => bool)) internal patient_active_prescriptions; // drug hash of active prescriptions for each patient
     mapping(address => uint[]) internal patient_id_prescriptions; // id of prescriptions (current and past) for each patient
+    mapping(address => mapping(bytes32 => uint)) internal patient_drug_expiration; //expiration of drug name (hashed) for each patient
+    mapping(address => mapping(bytes32 => uint)) internal patient_drug_id; //id of the prescription based on drug name (hashed) for each patient
+    //based on the assumption that each patient may have one and only one prescription active for each drug
     mapping(uint => mapping(address => uint[])) prescription_to_pharmacy_quantity; // for each prescription ID, map to the pharmacy who closed it and to the quantity
     mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the array of pharmacy who closed it
-	
+
     function lowercase(string memory _str) internal pure returns (string memory) {
-    	// Solidity cannot compare strings directly, this is needed to avoid errors when comparing strings by their hashes. 
+    	// Solidity cannot compare strings directly, this is needed to avoid errors when comparing strings by their hashes.
         // adapted from: https://gist.github.com/thomasmaclean/276cb6e824e48b7ca4372b194ec05b97
 		bytes memory bytes_str = bytes(_str);
 		bytes memory bytes_lower_str = new bytes(bytes_str.length);
@@ -60,7 +63,7 @@ contract bitpharma {
 		}
 		return string(bytes_lower_str);
 	}
-	
+
     function set_whitelist_address(address _wl_address) external {
         // BitPharma can always update the address of the whitelist contract
         require(msg.sender == bitpharma_manager, "Only BitPharma Manager can update the whitelist address");
@@ -94,9 +97,12 @@ contract bitpharma {
         require(check_active_prescriptions(_patient,_drug) == false, "The patient already has an active prescription for this drug");
 
         uint id = prescriptions.push(prescription(lowercase(_drug), _quantity, 0, _maxclaim, _purchaseCooldown * 1 days, 0, now + _daysToExpiration * 1 days , 0, msg.sender)) - 1;
+        bytes32 hashed_drug = keccak256(bytes(lowercase(_drug)));
         prescription_to_patient[id] = _patient;
         patient_readers[_patient][_patient] = true;
-        patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))] = true;
+        patient_active_prescriptions[_patient][hashed_drug] = true;
+        patient_drug_expiration[_patient][hashed_drug] = now + _daysToExpiration * 1 days;
+        patient_drug_id[_patient][hashed_drug] = id;
         patient_id_prescriptions[_patient].push(id);
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
@@ -154,11 +160,19 @@ contract bitpharma {
         return patient_id_prescriptions[_patient];
     }
 
-    function check_active_prescriptions(address _patient, string memory _drug) internal view returns(bool) {
+    function check_active_prescriptions(address _patient, string memory _drug) internal returns(bool) {
         // returns whether a prescription is currently open for a specific patient and a specific drug
         // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information.
 
-        return patient_active_prescriptions[_patient][keccak256(bytes(lowercase(_drug)))];
+        bytes32 hashed_drug = keccak256(bytes(lowercase(_drug)));
+
+        if(now>patient_drug_expiration[_patient][hashed_drug]) {
+            //old prescription is expired, allow the release of a new prescription
+            prescriptions[patient_drug_id[_patient][hashed_drug]].status = 3;
+            patient_active_prescriptions[_patient][hashed_drug] = false;
+        }
+
+        return patient_active_prescriptions[_patient][hashed_drug];
     }
 
     function prescription_details(uint _prescrId) external view returns(string memory drug, uint quantity_left, uint max_claim, bool can_I_buy, uint days_to_expiration, uint status) {
