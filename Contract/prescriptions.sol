@@ -14,11 +14,13 @@ contract bitpharma {
         bitpharma_manager = msg.sender;
     }
 
+
     event Prescribed(string _drug, uint _quantity, uint _maxclaim, uint _purchaseCooldown, uint _daysToExpiration, address _patient);
     event Transaction(uint _prescrId, uint _quantity); // a purchase has been made, as confirmed by both parties
     event Closed(uint _prescrId); // a prescription contract has been closed
     event ReaderAdded(address _reader, address _patient); // a new doctor is added to the list of readers
     event ReaderRemoved(address _reader, address _patient); // a doctor is removed from the list of readers
+
 
     struct prescription {
         string drug; // name of the drug prescribed
@@ -36,20 +38,23 @@ contract bitpharma {
         address doctor; // doctor who issued the prescription
         }
 
+
+    // useful mappings:
     prescription[] internal prescriptions;  // array of prescriptions
     mapping (uint => address) internal prescription_to_patient; // for each prescription ID, map to patient address
     mapping(address => mapping(address => bool)) internal patient_readers; // addresses who can access patient information
     mapping(address => mapping(bytes32 => bool)) internal patient_active_prescriptions; // drug hash of active prescriptions for each patient
     mapping(address => uint[]) internal patient_id_prescriptions; // id of prescriptions (current and past) for each patient
-    mapping(address => mapping(bytes32 => uint)) internal patient_drug_expiration; //expiration of drug name (hashed) for each patient
-    mapping(address => mapping(bytes32 => uint)) internal patient_drug_id; //id of the prescription based on drug name (hashed) for each patient
-    //based on the assumption that each patient may have one and only one prescription active for each drug
+    mapping(address => mapping(bytes32 => uint)) internal patient_drug_expiration; // expiration of prescription for a specific drug (drug name hashed) for each patient
+    mapping(address => mapping(bytes32 => uint)) internal patient_drug_id; // id of the prescription based on drug name (hashed) for each patient
+    // based on the assumption that each patient may have one and only one prescription active for each drug
     mapping(uint => mapping(address => uint[])) prescription_to_pharmacy_quantity; // for each prescription ID, map to the pharmacy who closed it and to the quantity
-    mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the array of pharmacy who closed it
+    mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the address of pharmacy who closed it
 
     function lowercase(string memory _str) internal pure returns (string memory) {
     	// Solidity cannot compare strings directly, this is needed to avoid errors when comparing strings by their hashes.
         // adapted from: https://gist.github.com/thomasmaclean/276cb6e824e48b7ca4372b194ec05b97
+
 		bytes memory bytes_str = bytes(_str);
 		bytes memory bytes_lower_str = new bytes(bytes_str.length);
 		for (uint i = 0; i < bytes_str.length; i++) {
@@ -163,6 +168,7 @@ contract bitpharma {
     function check_active_prescriptions(address _patient, string memory _drug) internal returns(bool) {
         // returns whether a prescription is currently open for a specific patient and a specific drug
         // only used within NewPrescription, to make sure multiple prescriptions do not occur, and not as a mean to gather sensitive personal information.
+        // in order to do this, it must first check whether there is an expired prescription for that drug, and update its status
 
         bytes32 hashed_drug = keccak256(bytes(lowercase(_drug)));
 
@@ -182,6 +188,7 @@ contract bitpharma {
                 || msg.sender==prescriptions[_prescrId].doctor  // the doctor who issued the prescription
                 || bitpharma_wl(whitelist_address).pharmacies(msg.sender), // pharmacies (all???)
                 "You can't see this prescription!");
+
         drug = prescriptions[_prescrId].drug;
         quantity_left = prescriptions[_prescrId].quantity;
         max_claim = prescriptions[_prescrId].maxclaim;
@@ -191,10 +198,12 @@ contract bitpharma {
     }
 
     function get_prescription_pharmacies(uint _prescId) external view returns(address[] memory) {
+
         return prescription_to_pharmacy[_prescId];
     }
 
     function get_prescription_pharmacy_quantity(uint _prescId, address _pharmacy) external view returns(uint[] memory) {
+
         return prescription_to_pharmacy_quantity[_prescId][_pharmacy];
     }
 
