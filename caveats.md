@@ -1,6 +1,7 @@
 ### Privacy concerns
 ---
-[...]
+- use of a private key in the interface
+- allow some functionalities only to law enforcement
 ### Considerations on efficiency and cost-effectiveness
 ---
 [...]
