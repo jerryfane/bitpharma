@@ -16,6 +16,8 @@
  - We built the interface with python with the `tkinter` and `web3` packages. It is a rough prototype and it should just express in a simple way how our platform should work. It is run in a local host with ganache. First issue is due to this platform. For the authentication method we relied on the public key: on the backend the default account on web3 is set according to the public key. This could lead to several issues since everybody can have access to the others public keys. 
  - Second issue is due to the web3 package: we have inserted several require with a specific debugging error in the contract. However, instead of giving the error message we insert in the contract, the web3 package gives us a general error. For this reason, in the interface we reflect this and hence, it is harder for the user to understand to the origin of the mistake.
 
+---
+
 ### Ideas for further development
 
 - Checks compliance to legislation (e.g. expiration, maximum purchasable quantities...), for specific drugs, perhaps by connecting with an external database
