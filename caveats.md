@@ -22,4 +22,5 @@
 
 - Checks compliance to legislation (e.g. expiration, maximum purchasable quantities...), for specific drugs, perhaps by connecting with an external database
 - Implement in some way the possibility for law enforcement to get limited readership rights on patient's prescription history,  when it is needed to investigate cases of illegal prescriptions.
+- Insert new features in order to take advantage of the events we have created in the contract. In this way, when a user completes a transaction, e.g. new prescription or purchase, he/she receives a notification. 
 
