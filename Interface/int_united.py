@@ -7,7 +7,7 @@ import tkinter.ttk
 with open('./contract_data/bitpharma.abi') as json_file:
     abi_ = json.loads(json_file.read())
 
-with open('./contract_data/bitpharma.bin') as file:
+with open('./Interface/contract_data/bitpharma.bin') as file:
     bin_ = file.read()
 
 with open('./contract_data/bitpharma_wl.abi') as json_file:
@@ -134,7 +134,7 @@ def doctor_window_():
     doctor_window.title('Doctor interface')
 
     # Background
-    back_image = Image.open('./images/background_doctor.jpg')
+    back_image = Image.open('./images/background_doctor.png')
     back_image = back_image.resize((1800,1500))
     background_image = ImageTk.PhotoImage(back_image)
     background_label = tk.Label(doctor_window, image=background_image)
@@ -146,8 +146,9 @@ def doctor_window_():
     for row in range(10):
         doctor_window.grid_rowconfigure(row, weight=1)
 
-    title_doctor=tk.Label(doctor_window, text='Hello doctor!', font=(30))
-    title_doctor.grid(row=0,column=1,sticky='N', padx=10,pady=10)
+    #title_doctor=tk.Label(doctor_window, text='Hello doctor!', font=(30))
+    #title_doctor=tk.Label(doctor_window, text='', font=(30))
+    #title_doctor.grid(row=0,column=1,sticky='N', padx=10,pady=10)
 
     subtitle_doctor=tk.Label(doctor_window, text='Here you can prescribe to your patients \nand check their prescriptions',
                              fg="blue4", bd=4, font="arial 15")
@@ -268,7 +269,7 @@ def patient_window_():
     patient_window.title('Patient interface')
 
     # Background
-    back_image = Image.open('./images/background_patient.jpg')
+    back_image = Image.open('./images/background_patient.png')
     back_image = back_image.resize((1800,1500))
     background_image = ImageTk.PhotoImage(back_image)
     background_label = tk.Label(patient_window, image=background_image)
@@ -280,8 +281,8 @@ def patient_window_():
     for row in range(9):
         patient_window.grid_rowconfigure(row, weight=1)
 
-    title=tk.Label(patient_window, text='Hello patient', font=30,  bg ='orange')
-    title.grid(row=0, column=1, sticky='WE', padx=100, pady=10)
+    #title=tk.Label(patient_window, text='Hello patient', font=30,  bg ='orange')
+    #title.grid(row=0, column=1, sticky='WE', padx=100, pady=10)
     title=tk.Label(patient_window, text='Here you can buy your medicine:', font=30,  bg ='orange')
     title.grid(row=1, column=1, sticky='WE', padx=100, pady=5)
 
@@ -374,7 +375,7 @@ def pharma_window_():
     pharma_window.title('Pharma interface')
 
     # Background
-    back_image = Image.open('./images/background_pharmacy.jpg')
+    back_image = Image.open('./images/background_pharmacy.png')
     back_image = back_image.resize((1800,1500))
     background_image = ImageTk.PhotoImage(back_image)
     background_label = tk.Label(pharma_window, image=background_image)
@@ -386,8 +387,8 @@ def pharma_window_():
     for row in range(7):
         pharma_window.grid_rowconfigure(row, weight=1)
 
-    title_doctor=tk.Label(pharma_window, text='Hello Pharmacy!', font=30, fg="blue4", bd=4)
-    title_doctor.grid(row=0,column=1,sticky='N', padx=10, pady=10)
+    #title_doctor=tk.Label(pharma_window, text='Hello Pharmacy!', font=30, fg="blue4", bd=4)
+    #title_doctor.grid(row=0,column=1,sticky='N', padx=10, pady=10)
 
     subtitle_doctor=tk.Label(pharma_window, text='Here you can sell your drugs', fg="blue4", bd=4, font="arial 15")
     subtitle_doctor.grid(row=1,column=1,sticky='WE', padx=10, pady=10)
@@ -538,21 +539,21 @@ def bitpharma_window_():
     for row in range(11):
         bitpharma_window.grid_rowconfigure(row, weight=1)
 
-    back_image = Image.open('./images/pharmacy.jpg')
+    back_image = Image.open('./images/pharmacy.png')
     background_image = ImageTk.PhotoImage(back_image)
     background_label = tk.Label(bitpharma_window, image=background_image)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
     background_label.image = background_image
 
-    title=tk.Label(bitpharma_window, text='Welcome to Medical prescription Ethereum!', font=30, fg="green")
-    title.grid(row=0,column=1,sticky='WE', padx=10, pady=(10))
+    #title=tk.Label(bitpharma_window, text='Welcome to Medical prescription Ethereum!', font=30, fg="green")
+    #title.grid(row=0,column=1,sticky='WE', padx=10, pady=(10))
 
     load = Image.open('./images/logo_pharma.png')
-    load = load.resize((100, 100))
+    load = load.resize((80, 80))
     photoimage = ImageTk.PhotoImage(load)
     pharma_label = tk.Label(bitpharma_window, image=photoimage)
     pharma_label.image = photoimage
-    pharma_label.place(x=675, y=65)
+    pharma_label.place(x=995, y=65)
     
     try:
         contract_deployed_
