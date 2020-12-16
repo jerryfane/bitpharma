@@ -122,12 +122,7 @@ def doctor_window_():
             can_buy = details[3]
             expire_in = details[4]
             status = details[5]
-            to_print = f''' drug: {drugname}
-                            quantity: {quantity}
-                            max_claim: {max_claim}
-                            can_buy: {can_buy}
-                            expire_in: {expire_in} days
-                            status: {status}    '''
+            to_print = f'''drug: {drugname}\nquantity: {quantity}\nmax_claim: {max_claim}\ncan_buy: {can_buy}\nexpire_in: {expire_in} days\nstatus: {status}'''
             descr=tk.Label(doctor_window, text=to_print, font=10)
             descr.grid(row=9,column=2,sticky='WE', padx=100,pady=10)
         except:
@@ -233,12 +228,7 @@ def patient_window_():
             can_buy = details[3]
             expire_in = details[4]
             status = details[5]
-            to_print = f'''drug: {drugname}
-                           quantity: {quantity}
-                           max_claim: {max_claim}
-                           can_buy: {can_buy}
-                           expire_in: {expire_in} days
-                           status: {status}'''
+            to_print = f'''drug: {drugname}\nquantity: {quantity}\nmax_claim: {max_claim}\ncan_buy: {can_buy}\nexpire_in: {expire_in} days\nstatus: {status}'''
             descr=tk.Label(patient_window, text=to_print, font=10)
             descr.grid(row=4,column=2,sticky='WE', padx=100,pady=10)
         except:
@@ -324,8 +314,6 @@ def patient_window_():
         row=5, sticky='WE',padx=10, pady=10,columnspan=3)
     doct_section = tk.Label(patient_window, text='Manage doctor access', font = 30, bg ='orange')
     doct_section.grid(row=5, column=1,sticky='WE', padx=100, pady=10)
-    tkinter.ttk.Separator(patient_window, orient='horizontal').grid(column=2,
-         row=7, sticky='WE', padx=10, pady=10)
 
     id_doct = tk.StringVar(patient_window, value='Doctor public id')
     doctor_entry=tk.Entry(patient_window, justify=tk.CENTER, textvariable=id_doct,
@@ -374,12 +362,7 @@ def pharma_window_():
             can_buy = details[3]
             expire_in = details[4]
             status = details[5]
-            to_print = f''' drug: {drugname}
-                            quantity: {quantity}
-                            max_claim: {max_claim}
-                            can_buy: {can_buy}
-                            expire_in: {expire_in} days
-                            status: {status}'''
+            to_print = f'''drug: {drugname}\nquantity: {quantity}\nmax_claim: {max_claim}\ncan_buy: {can_buy}\nexpire_in: {expire_in} days\nstatus: {status}'''
             descr=tk.Label(pharma_window, text=to_print,  fg="blue4", bd=4, font="arial 13")
             descr.grid(row=7,column=2,sticky='WE', padx=100,pady=10)
         except:
