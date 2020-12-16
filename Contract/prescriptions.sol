@@ -48,8 +48,9 @@ contract bitpharma {
     mapping(address => mapping(bytes32 => uint)) internal patient_drug_expiration; // expiration of prescription for a specific drug (drug name hashed) for each patient
     mapping(address => mapping(bytes32 => uint)) internal patient_drug_id; // id of the prescription based on drug name (hashed) for each patient
     // based on the assumption that each patient may have one and only one prescription active for each drug
-    mapping(uint => mapping(address => uint[])) prescription_to_pharmacy_quantity; // for each prescription ID, map to the pharmacy who closed it and to the quantity
-    mapping(uint => address[]) prescription_to_pharmacy; // for each prescription ID, map to the address of pharmacy who closed it
+    mapping(uint => mapping(address => uint[])) internal prescription_to_pharmacy_quantity; // for each prescription ID, map to the pharmacy who closed it and to the quantity
+    mapping(uint => address[]) internal prescription_to_pharmacy; // for each prescription ID, map to the address of pharmacy who closed it
+    mapping(address => bool) internal is_old_patient; //mapping used to understand if the patient is a new user
 
     function lowercase(string memory _str) internal pure returns (string memory) {
     	// Solidity cannot compare strings directly, this is needed to avoid errors when comparing strings by their hashes.
@@ -109,6 +110,7 @@ contract bitpharma {
         patient_drug_expiration[_patient][hashed_drug] = now + _daysToExpiration * 1 days;
         patient_drug_id[_patient][hashed_drug] = id;
         patient_id_prescriptions[_patient].push(id);
+        is_old_patient[_patient]=true;
         emit Prescribed(_drug,_quantity,_maxclaim,_purchaseCooldown,_daysToExpiration,_patient);
     }
 
@@ -172,10 +174,12 @@ contract bitpharma {
 
         bytes32 hashed_drug = keccak256(bytes(lowercase(_drug)));
 
-        if(now>patient_drug_expiration[_patient][hashed_drug]) {
-            //old prescription is expired, allow the release of a new prescription
-            prescriptions[patient_drug_id[_patient][hashed_drug]].status = 3;
-            patient_active_prescriptions[_patient][hashed_drug] = false;
+        if(is_old_patient[_patient]) {
+            if(now>patient_drug_expiration[_patient][hashed_drug]) {
+                //old prescription is expired, allow the release of a new prescription
+                prescriptions[patient_drug_id[_patient][hashed_drug]].status = 3;
+                patient_active_prescriptions[_patient][hashed_drug] = false;
+            }
         }
 
         return patient_active_prescriptions[_patient][hashed_drug];
