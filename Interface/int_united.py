@@ -438,7 +438,7 @@ def bitpharma_window_():
     def init_whitelist():
         bitpharma_manager=str(id_entry.get())
         try:
-            #Deploying bigpharma contract
+            #Deploying bitpharma contract
             w3.eth.defaultAccount = bitpharma_manager
             contract = w3.eth.contract(bitpharma_manager, abi = abi_, bytecode = bin_)
             tx_hash=contract.constructor().transact() 
@@ -478,9 +478,9 @@ def bitpharma_window_():
             val_text=tk.Label(bitpharma_window,text='Doctor added!', fg='green')
             val_text.grid(row=6, column=1, sticky='WE', padx=30, pady=10)
         except:
-            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+            text=tk.Label(bitpharma_window, text='You are not the BitPharma manager',
                          fg='red')
-            text.grid(row=6, column=1, sticky='WE', padx=100, pady=10)
+            text.grid(row=6, column=0, sticky='WE', padx=100, pady=10)
 
     def add_pharma():
         address=str(pharma.get())
@@ -489,7 +489,7 @@ def bitpharma_window_():
             val_text=tk.Label(bitpharma_window,text='Pharmacy added!', fg='green')
             val_text.grid(row=8, column=1, sticky='WE', padx=30, pady=10)
         except:
-            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+            text=tk.Label(bitpharma_window, text='You are not the BitPharma manager',
                          fg='red')
             text.grid(row=8, column=0, sticky='WE', padx=100, pady=10)
 
@@ -500,7 +500,7 @@ def bitpharma_window_():
             val_text=tk.Label(bitpharma_window,text='Patient added!', fg='green')
             val_text.grid(row=10, column=1, sticky='WE', padx=30, pady=10)
         except:
-            text=tk.Label(bitpharma_window, text='You are not the BigPharma manager',
+            text=tk.Label(bitpharma_window, text='You are not the BitPharma manager',
                          fg='red')
             text.grid(row=10, column=0, sticky='WE', padx=100, pady=10)
 
