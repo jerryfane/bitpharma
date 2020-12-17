@@ -7,7 +7,7 @@ import tkinter.ttk
 with open('./contract_data/bitpharma.abi') as json_file:
     abi_ = json.loads(json_file.read())
 
-with open('./Interface/contract_data/bitpharma.bin') as file:
+with open('./contract_data/bitpharma.bin') as file:
     bin_ = file.read()
 
 with open('./contract_data/bitpharma_wl.abi') as json_file:
