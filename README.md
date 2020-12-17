@@ -47,6 +47,7 @@ Specifically, the struct `prescription` is characterized by the following attrib
  7. *expiration*: days from when prescription was issued
  8. *status*: it can take value from 0 to 3 based on the status of the prescription. In particular,  0 means that the prescription has been issued. It takes value 1 once the patient has confirmed the purchase and 2 when the pharmacy has closed the transaction successfully. Finally, if the prescription expires before being used, the status takes value 3.
  9. *doctor*: doctor who issued the prescription
+ 
 We keep track of all prescriptions being issued in the chain with the array `prescriptions`. Given a presription id, the only users that can view the details of that prescription are the recipient of it, external users allowed by the recipient ("readers"), the doctor who issued it and the pharmacies at point of sale. Note that, when viewing the details of a prescription with a call to `prescription_details` there is no reference to the addresses of the patient and the doctor (checks are carried out internally when selling or requesting access), as a further privacy guarantee.
  
  At a more developed stage, most of these attributes would be constrained to values that comply with current regulation. For instance, Italian laws allow for prescriptions of up to two packages for most drugs, which increases to three for drugs used to treat chronic diseases and to six for injectable antibiotics. This could be achieved by allowing the contract to communicate with an external database that would contain all of these requirements, and then add checks in the code to ensure full compliance to the regulation.
@@ -64,6 +65,7 @@ In particual, we mapped:
 7. `prescription_to_pharmacy_quantity`: a nested mapping; for each prescription id, map to the pharmacy who closed it and the quantity sold. 
 8. `prescription_to_pharmacy`: for each prescription id, map to the address of the pharmacy who closed it.
 9. `is_old_patient`: for each patient address, map to a boolean stating whether the pateint is a new user (i.e. there has never been a prescription made towards him/her on the blockchain).
+
 Mappings 7 and 8 are drafts, meant to allow for easier checks by special categories of readers such as law enforcements, via the `get_prescription_pharmacies` and `get_prescription_pharmacy_quantity`functions which are at this stage simple external view function. More on this in the caveats.
 
 #### Main functions
