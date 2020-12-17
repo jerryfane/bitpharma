@@ -190,7 +190,7 @@ contract bitpharma {
         // can only be accessed by:
         require(patient_readers[prescription_to_patient[_prescrId]][msg.sender] // readers for that prescription's recipient
                 || msg.sender==prescriptions[_prescrId].doctor  // the doctor who issued the prescription
-                || bitpharma_wl(whitelist_address).pharmacies(msg.sender), // pharmacies (all???)
+                || bitpharma_wl(whitelist_address).pharmacies(msg.sender), // pharmacies 
                 "You can't see this prescription!");
 
         drug = prescriptions[_prescrId].drug;
@@ -199,15 +199,16 @@ contract bitpharma {
         can_I_buy = (prescriptions[_prescrId].purchase_cooldown+prescriptions[_prescrId].last_purchase < now);
         days_to_expiration = ((prescriptions[_prescrId].expiration - now) / 86400);
         status = prescriptions[_prescrId].status;
+	// N.B: no reference to patient and doctor address in the information returned
     }
 
     function get_prescription_pharmacies(uint _prescId) external view returns(address[] memory) {
-
+	// further developments: add identity checks here to allow function call
         return prescription_to_pharmacy[_prescId];
     }
 
     function get_prescription_pharmacy_quantity(uint _prescId, address _pharmacy) external view returns(uint[] memory) {
-
+	// further developments: add identity checks here to allow function call
         return prescription_to_pharmacy_quantity[_prescId][_pharmacy];
     }
 
