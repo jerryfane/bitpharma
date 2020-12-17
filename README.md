@@ -55,15 +55,15 @@ We keep track of all prescriptions being issued in the chain with the array `pre
  
 We used several internal `mappings`, to allow for easy information retrieval and to enable the use of different require() statements in function calls.
 In particual, we mapped:
-1 `prescription_to_patient`: each prescription ID to the corresponding patient address;
-2 `patient_readers`: for each patient address, the addresses of the other users who have been explicitly allowed access to their prescription history (e.g. their doctor). Patient can add and remove new readers with a call to the `patient_add_reader` and `patient_remove_reader` functions. Only allowed readers can access the prescription history of a patient.  
-3 `patient_active_prescriptions`: a nested mapping; for each patient address, and each drug, map to a boolean that indicates whether or not they have an active prescription for the drug. This is necessary, as we see below, to check and avoid co-occurring double prescriptions.
-4 `patient_id_prescriptions`: for each patient, a list of prescriptions ids that make up his/her whole prescription history.
-5 `patient_drug_expiration`: a nested mapping; for each patient, and each prescribed drug, map to the expiration of the corresponding prescription
-6 `patient_drug_id`: a nested mapping;  for each patient, and prescribed drug, map to the id of the corresponding active prescription
-7 `prescription_to_pharmacy_quantity`: a nested mapping; for each prescription id, map to the pharmacy who closed it and the quantity sold. 
-8 `prescription_to_pharmacy`: for each prescription id, map to the address of the pharmacy who closed it.
-9 `is_old_patient`: for each patient address, map to a boolean stating whether the pateint is a new user (i.e. there has never been a prescription made towards him/her on the blockchain).
+1. `prescription_to_patient`: each prescription ID to the corresponding patient address;
+2. `patient_readers`: for each patient address, the addresses of the other users who have been explicitly allowed access to their prescription history (e.g. their doctor). Patient can add and remove new readers with a call to the `patient_add_reader` and `patient_remove_reader` functions. Only allowed readers can access the prescription history of a patient.  
+3. `patient_active_prescriptions`: a nested mapping; for each patient address, and each drug, map to a boolean that indicates whether or not they have an active prescription for the drug. This is necessary, as we see below, to check and avoid co-occurring double prescriptions.
+4. `patient_id_prescriptions`: for each patient, a list of prescriptions ids that make up his/her whole prescription history.
+5. `patient_drug_expiration`: a nested mapping; for each patient, and each prescribed drug, map to the expiration of the corresponding prescription
+6. `patient_drug_id`: a nested mapping;  for each patient, and prescribed drug, map to the id of the corresponding active prescription
+7. `prescription_to_pharmacy_quantity`: a nested mapping; for each prescription id, map to the pharmacy who closed it and the quantity sold. 
+8. `prescription_to_pharmacy`: for each prescription id, map to the address of the pharmacy who closed it.
+9. `is_old_patient`: for each patient address, map to a boolean stating whether the pateint is a new user (i.e. there has never been a prescription made towards him/her on the blockchain).
 Mappings 7 and 8 are drafts, meant to allow for easier checks by special categories of readers such as law enforcements, via the `get_prescription_pharmacies` and `get_prescription_pharmacy_quantity`functions which are at this stage simple external view function. More on this in the caveats.
 
 #### Main functions
